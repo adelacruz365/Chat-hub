@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unified Response Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══ HEADER ════════════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 16 16" fill="white" width="16" height="16">
+          <path d="M8 1C4.13 1 1 3.91 1 7.5c0 1.67.63 3.2 1.68 4.37L1.5 15l3.3-1.06A7.1 7.1 0 0 0 8 14c3.87 0 7-2.91 7-6.5S11.87 1 8 1z"/>
+        </svg>
+      </div>
+      <span>Unified Response Command</span>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-item">
+        <span class="stat-dot green"></span>
+        Activas: <strong id="stat-active">0</strong>
+      </div>
+      <div class="stat-item">
+        <span class="stat-dot amber"></span>
+        Pendientes: <strong id="stat-pending">0</strong>
+      </div>
+      <div class="stat-item">
+        <span class="stat-dot blue"></span>
+        Resp. Media: <strong>1m 12s</strong>
+      </div>
+      <div class="stat-item">
+        <span class="stat-dot teal"></span>
+        Resueltas hoy: <strong id="stat-resolved">0</strong>
+      </div>
+      <div class="ws-status" id="wsStatus" title="Estado conexión">
+        <span class="ws-dot"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN ══════════════════════════════════════════════ -->
+  <div class="main">
+
+    <!-- ─── SIDEBAR ──────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Cola de Conversaciones</div>
+        <div class="sidebar-count" id="queueCount">0 conversaciones</div>
+      </div>
+
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="6.5" cy="6.5" r="5"/><path d="m10.5 10.5 3.5 3.5"/>
+        </svg>
+        <input class="search-input" id="searchInput" placeholder="Buscar...">
+      </div>
+
+      <div class="channel-tabs" id="channelTabs">
+        <button class="ch-tab active" data-filter="all">Todos</button>
+        <button class="ch-tab" data-filter="whatsapp">WA</button>
+        <button class="ch-tab" data-filter="teams">Teams</button>
+        <button class="ch-tab" data-filter="web">Web</button>
+      </div>
+
+      <div class="conv-list" id="convList">
+        <div class="loading-state">Cargando conversaciones...</div>
+      </div>
+    </aside>
+
+    <!-- ─── CHAT AREA ─────────────────────────────────────── -->
+    <section class="chat-area" id="chatArea">
+
+      <!-- Empty state -->
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="52" height="52" opacity="0.25">
+          <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+        </svg>
+        <div class="empty-title">Selecciona una conversación</div>
+        <div class="empty-sub">Elige una conversación de la cola para empezar</div>
+      </div>
+
+      <!-- Chat view -->
+      <div class="chat-view" id="chatView" style="display:none">
+
+        <!-- Chat header -->
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <div class="conv-avatar" id="chatAvatar"></div>
+            <div>
+              <div class="chat-user-name" id="chatUserName"></div>
+              <div class="chat-user-sub">
+                <span class="live-dot"></span>
+                En vivo &middot; <span id="chatChannel"></span> &middot; <span id="chatTopic"></span>
+              </div>
+            </div>
+          </div>
+          <div class="chat-actions">
+            <button class="action-btn transfer-btn" id="transferBtn">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M2 8h12M9 3l5 5-5 5"/>
+              </svg>
+              Transferir
+            </button>
+            <button class="action-btn notes-btn" id="notesBtn">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/>
+              </svg>
+              Notas
+            </button>
+            <button class="action-btn resolve-btn" id="resolveBtn">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M2.5 8.5l3.5 3.5 7-7"/>
+              </svg>
+              Resolver
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages-area" id="messagesArea"></div>
+
+        <!-- Input area -->
+        <div class="input-area">
+          <div class="input-toolbar">
+            <button class="toolbar-btn">📎 Adjuntar</button>
+            <button class="toolbar-btn qr-trigger">⚡ Respuestas rápidas</button>
+            <button class="toolbar-btn">🤖 Sugerir IA</button>
+          </div>
+          <div class="input-row">
+            <textarea
+              class="msg-input"
+              id="msgInput"
+              placeholder="Escribe un mensaje al cliente..."
+              rows="1"
+            ></textarea>
+            <button class="send-btn" id="sendBtn" aria-label="Enviar">
+              <svg viewBox="0 0 24 24" fill="white" width="15" height="15">
+                <path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick replies panel -->
+        <div class="qr-panel" id="qrPanel" style="display:none">
+          <div class="qr-panel-header">Respuestas rápidas</div>
+          <div class="qr-panel-body" id="qrPanelBody"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── RIGHT PANEL ────────────────────────────────────── -->
+    <aside class="right-panel" id="rightPanel" style="display:none">
+      <div class="rp-section">
+        <div class="rp-title">Info del cliente</div>
+        <div class="rp-row"><span class="rp-label">Nombre</span><span class="rp-value" id="rpName"></span></div>
+        <div class="rp-row"><span class="rp-label">Canal</span><span class="rp-value" id="rpChannel"></span></div>
+        <div class="rp-row"><span class="rp-label">Estado</span><span class="rp-value" id="rpStatus"></span></div>
+        <div class="rp-row"><span class="rp-label">Inicio</span><span class="rp-value" id="rpStart"></span></div>
+        <div class="rp-row"><span class="rp-label">Agente</span><span class="rp-value" id="rpAgent">—</span></div>
+      </div>
+      <div class="rp-section">
+        <div class="rp-title">Etiquetas</div>
+        <div class="tags-wrap" id="rpTags"></div>
+      </div>
+      <div class="rp-section">
+        <div class="rp-title">Respuestas rápidas</div>
+        <div class="quick-replies" id="sidebarQR"></div>
+      </div>
+      <div class="rp-section">
+        <div class="rp-title">Probar Bot</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+          <input id="botTestInput" class="bot-test-input" placeholder="Mensaje de prueba..." style="flex:1">
+          <button id="botTestBtn" class="action-btn">Enviar</button>
+        </div>
+        <div id="botTestResult" class="bot-test-result"></div>
+      </div>
+    </aside>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Transfer modal -->
+<div class="modal-backdrop" id="transferModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">Transferir conversación</div>
+    <div class="modal-body">
+      <label class="modal-label">Transferir a:</label>
+      <select id="transferTarget" class="modal-select">
+        <option value="queue">Cola general</option>
+        <option value="sales">Sales</option>
+        <option value="tech">Soporte Técnico</option>
+        <option value="billing">Facturación</option>
+      </select>
+      <label class="modal-label" style="margin-top:12px">Motivo (opcional):</label>
+      <textarea id="transferNote" class="modal-textarea" placeholder="Añade una nota para el próximo agente..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="action-btn" id="cancelTransfer">Cancelar</button>
+      <button class="action-btn resolve-btn" id="confirmTransfer">Transferir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Web Widget (iframe preview) -->
+<div id="widgetPreview" style="position:fixed;bottom:20px;right:20px;z-index:900;display:none">
+  <iframe src="widget.html" width="340" height="480" style="border:none;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5)"></iframe>
+</div>
+<button id="widgetToggle" style="position:fixed;bottom:20px;right:20px;z-index:1000;width:48px;height:48px;border-radius:50%;background:#3b82f6;border:none;cursor:pointer;color:white;font-size:20px;" title="Mostrar widget de usuario">💬</button>
+
+<script src="js/app.js"></script>
+</body>
+</html>

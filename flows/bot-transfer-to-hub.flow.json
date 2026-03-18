@@ -1,0 +1,144 @@
+{
+  "_description": "Power Automate Flow — Bot Transfer to Hub",
+  "_instrucciones": [
+    "Importa este JSON en Power Automate como 'Automated cloud flow'",
+    "Configura el trigger como HTTP Request",
+    "Añade tu URL del backend en el paso 'Notify Hub'",
+    "Este flujo recibe eventos del bot de Azure y los envía al hub"
+  ],
+
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "triggers": {
+      "When_HTTP_request_received": {
+        "type": "Request",
+        "kind": "Http",
+        "inputs": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "event":          { "type": "string" },
+              "conversationId": { "type": "string" },
+              "channel":        { "type": "string" },
+              "userId":         { "type": "string" },
+              "userName":       { "type": "string" },
+              "topic":          { "type": "string" },
+              "messages": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "from":      { "type": "string" },
+                    "text":      { "type": "string" },
+                    "timestamp": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "actions": {
+      "Parse_Event": {
+        "type": "ParseJson",
+        "inputs": {
+          "content": "@triggerBody()",
+          "schema": { "$ref": "#/triggers/When_HTTP_request_received/inputs/schema" }
+        }
+      },
+
+      "Switch_on_Event": {
+        "type": "Switch",
+        "expression": "@body('Parse_Event')?['event']",
+        "cases": {
+
+          "bot_transfer": {
+            "case": "bot.transfer",
+            "actions": {
+              "Notify_Hub_Transfer": {
+                "type": "Http",
+                "inputs": {
+                  "method": "POST",
+                  "uri": "https://YOUR_BACKEND_URL/webhook/power-automate",
+                  "headers": {
+                    "Content-Type": "application/json",
+                    "x-webhook-secret": "YOUR_WEBHOOK_SECRET"
+                  },
+                  "body": {
+                    "event":          "bot.transfer",
+                    "conversationId": "@body('Parse_Event')?['conversationId']",
+                    "channel":        "@body('Parse_Event')?['channel']",
+                    "userId":         "@body('Parse_Event')?['userId']",
+                    "userName":       "@body('Parse_Event')?['userName']",
+                    "topic":          "@body('Parse_Event')?['topic']",
+                    "messages":       "@body('Parse_Event')?['messages']"
+                  }
+                }
+              },
+              "Send_Teams_Notification": {
+                "type": "ApiConnection",
+                "inputs": {
+                  "host": { "connection": { "name": "@parameters('$connections')['teams']['connectionId']" } },
+                  "method": "post",
+                  "path": "/v3/beta/teams/@{encodeURIComponent('YOUR_TEAM_ID')}/channels/@{encodeURIComponent('YOUR_CHANNEL_ID')}/messages",
+                  "body": {
+                    "body": {
+                      "contentType": "html",
+                      "content": "⚡ <b>Nueva conversación en cola</b><br>Usuario: @{body('Parse_Event')?['userName']}<br>Canal: @{body('Parse_Event')?['channel']}<br>ID: @{body('Parse_Event')?['conversationId']}"
+                    }
+                  }
+                },
+                "_comment": "Opcional: notifica al canal de Teams del equipo de soporte"
+              }
+            }
+          },
+
+          "conversation_resolved": {
+            "case": "conversation.resolved",
+            "actions": {
+              "Log_Resolved": {
+                "type": "Http",
+                "inputs": {
+                  "method": "POST",
+                  "uri": "https://YOUR_BACKEND_URL/webhook/power-automate",
+                  "headers": { "Content-Type": "application/json", "x-webhook-secret": "YOUR_WEBHOOK_SECRET" },
+                  "body": {
+                    "event": "conversation.resolved",
+                    "conversationId": "@body('Parse_Event')?['conversationId']"
+                  }
+                }
+              },
+              "_comment_crm": "Aquí puedes añadir un paso para actualizar Dynamics 365 / Salesforce"
+            }
+          }
+        },
+
+        "default": {
+          "actions": {
+            "Log_Unknown_Event": {
+              "type": "Compose",
+              "inputs": "Evento desconocido: @{body('Parse_Event')?['event']}"
+            }
+          }
+        }
+      },
+
+      "Response": {
+        "type": "Response",
+        "inputs": {
+          "statusCode": 200,
+          "body": { "status": "ok", "processed": "@body('Parse_Event')?['event']" }
+        }
+      }
+    }
+  },
+
+  "_variables_a_reemplazar": {
+    "YOUR_BACKEND_URL":    "URL pública de tu backend (ngrok en dev, Azure App Service en prod)",
+    "YOUR_WEBHOOK_SECRET": "Mismo valor que WEBHOOK_SECRET en .env del backend",
+    "YOUR_TEAM_ID":        "ID del Team de Microsoft Teams para notificaciones (opcional)",
+    "YOUR_CHANNEL_ID":     "ID del canal de Teams para notificaciones (opcional)"
+  }
+}

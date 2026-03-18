@@ -1,0 +1,12 @@
+{
+  "name": "unified-response-hub",
+  "version": "1.0.0",
+  "description": "Hub centralizado de conversaciones WA + Teams + Web",
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../bot && npm install",
+    "start":       "cd backend && npm start",
+    "dev":         "cd backend && npm run dev",
+    "bot":         "cd bot && npm run dev"
+  },
+  "workspaces": ["backend", "bot"]
+}
