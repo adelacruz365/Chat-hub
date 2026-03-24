@@ -592,3 +592,150 @@ function setWsStatus(status) {
 
 // Expose openConv globally (used in inline onclick)
 window.openConv = openConv;
+
+// ═══════════════════════════════════════════════════════════════
+// KB PANEL — Asistente Técnico Interno
+// Solo frontend: estructura lista para conectar el bot.
+// Para activar: implementar kbCallBot(text) → devuelve string
+// ═══════════════════════════════════════════════════════════════
+
+const kbPanel      = $('kbPanel');
+const kbToggleBtn  = $('kbToggleBtn');
+const kbCloseBtn   = $('kbCloseBtn');
+const kbMessages   = $('kbMessages');
+const kbInput      = $('kbInput');
+const kbSendBtn    = $('kbSendBtn');
+
+let kbOpen     = false;
+let kbWaiting  = false;
+
+// ── Abrir / cerrar ────────────────────────────────────────────
+function openKbPanel() {
+  kbOpen = true;
+  kbPanel.classList.add('open');
+  kbToggleBtn.classList.add('active');
+  kbInput.focus();
+}
+
+function closeKbPanel() {
+  kbOpen = false;
+  kbPanel.classList.remove('open');
+  kbToggleBtn.classList.remove('active');
+}
+
+kbToggleBtn.addEventListener('click', () => kbOpen ? closeKbPanel() : openKbPanel());
+kbCloseBtn.addEventListener('click', closeKbPanel);
+
+// ── Shortcuts ────────────────────────────────────────────────
+document.querySelectorAll('.kb-shortcut').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const q = btn.dataset.query;
+    if (q) { kbInput.value = q; kbSendBtn.click(); }
+  });
+});
+
+// ── Send ──────────────────────────────────────────────────────
+async function kbSend() {
+  const text = kbInput.value.trim();
+  if (!text || kbWaiting) return;
+
+  // Limpiar welcome si existe
+  const welcome = kbMessages.querySelector('.kb-welcome');
+  if (welcome) welcome.remove();
+
+  kbInput.value = '';
+  kbInput.style.height = 'auto';
+  kbWaiting = true;
+  kbSendBtn.disabled = true;
+
+  // Mensaje del agente
+  kbAddMessage('kb-user', text);
+
+  // Typing indicator
+  const typing = kbShowTyping();
+
+  try {
+    // ── PUNTO DE INTEGRACIÓN ──────────────────────────────────
+    // Reemplaza esta llamada con tu bot real cuando esté listo:
+    //   const reply = await kbCallBot(text);
+    // Por ahora simula un delay visual de carga.
+    const reply = await kbCallBot(text);
+    typing.remove();
+    kbAddMessage('kb-assistant', reply);
+  } catch (err) {
+    typing.remove();
+    kbAddMessage('kb-assistant', '⚠️ Error al contactar con el asistente. Verifica la conexión con el backend.');
+  }
+
+  kbWaiting = false;
+  kbSendBtn.disabled = false;
+  kbInput.focus();
+}
+
+// ── Placeholder del bot (reemplazar con implementación real) ──
+async function kbCallBot(text) {
+  // TODO: conectar con tu endpoint de bot
+  // Ejemplo: const res = await fetch('/api/kb/ask', { method:'POST', body: JSON.stringify({text}) });
+  // return (await res.json()).reply;
+  await new Promise(r => setTimeout(r, 900)); // simula latencia
+  return `[Bot pendiente de conexión] Pregunta recibida: "${text}". Conecta tu endpoint en kbCallBot() dentro de app.js.`;
+}
+
+// ── Render mensajes ───────────────────────────────────────────
+function kbAddMessage(role, text) {
+  const now  = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  const row  = document.createElement('div');
+  row.className = `kb-msg-row ${role}`;
+
+  const label = role === 'kb-user' ? 'Tú' : 'Asistente';
+
+  row.innerHTML = `
+    <div class="kb-bubble">${escHtml(text)}</div>
+    <div class="kb-msg-meta">${label} · ${time}</div>`;
+
+  kbMessages.appendChild(row);
+  kbScrollBottom();
+}
+
+function kbShowTyping() {
+  const row = document.createElement('div');
+  row.className = 'kb-msg-row kb-assistant';
+  row.innerHTML = `
+    <div class="kb-typing">
+      <div class="kb-typing-dots">
+        <div class="kb-dot"></div>
+        <div class="kb-dot"></div>
+        <div class="kb-dot"></div>
+      </div>
+      <span class="kb-typing-label">Consultando base de conocimiento...</span>
+    </div>`;
+  kbMessages.appendChild(row);
+  kbScrollBottom();
+  return row;
+}
+
+function kbScrollBottom() {
+  setTimeout(() => { kbMessages.scrollTop = kbMessages.scrollHeight; }, 30);
+}
+
+// ── Input eventos ─────────────────────────────────────────────
+kbSendBtn.addEventListener('click', kbSend);
+
+kbInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kbSend(); }
+});
+
+kbInput.addEventListener('input', () => {
+  kbInput.style.height = 'auto';
+  kbInput.style.height = Math.min(kbInput.scrollHeight, 100) + 'px';
+});
+
+// ── Shortcut de teclado: Alt+K abre/cierra el panel ──────────
+document.addEventListener('keydown', e => {
+  if (e.altKey && e.key === 'k') {
+    e.preventDefault();
+    kbOpen ? closeKbPanel() : openKbPanel();
+  }
+});

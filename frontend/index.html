@@ -44,6 +44,15 @@
       <div class="ws-status" id="wsStatus" title="Estado conexión">
         <span class="ws-dot"></span>
       </div>
+
+      <button class="kb-toggle-btn" id="kbToggleBtn" title="Asistente técnico interno">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M6 6c0-1.1.9-2 2-2s2 .9 2 2c0 .9-.6 1.5-1.3 1.8C8 8.1 8 8.5 8 9"/>
+          <circle cx="8" cy="11.5" r=".75" fill="currentColor" stroke="none"/>
+        </svg>
+        <span>Base de conocimiento</span>
+      </button>
     </div>
   </header>
 
@@ -189,6 +198,67 @@
   </div><!-- /main -->
 </div><!-- /app -->
 
+<!-- ═══ KB PANEL — Asistente técnico interno ══════════════════ -->
+<div class="kb-panel" id="kbPanel">
+
+  <div class="kb-panel-header">
+    <div class="kb-panel-title">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="8" cy="8" r="6.5"/>
+        <path d="M6 6c0-1.1.9-2 2-2s2 .9 2 2c0 .9-.6 1.5-1.3 1.8C8 8.1 8 8.5 8 9"/>
+        <circle cx="8" cy="11.5" r=".75" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>Asistente Técnico</span>
+      <span class="kb-badge">INTERNO</span>
+    </div>
+    <button class="kb-close-btn" id="kbCloseBtn" title="Cerrar">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 3l10 10M13 3L3 13"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="kb-shortcuts">
+    <button class="kb-shortcut" data-query="¿Cómo escalar una conversación a nivel 2?">Escalar a N2</button>
+    <button class="kb-shortcut" data-query="Protocolo de incidencias críticas">Incidencia crítica</button>
+    <button class="kb-shortcut" data-query="Pasos para resetear credenciales de cliente">Reset credenciales</button>
+    <button class="kb-shortcut" data-query="Política de SLA y tiempos de respuesta">SLA & Tiempos</button>
+  </div>
+
+  <div class="kb-messages" id="kbMessages">
+    <div class="kb-welcome">
+      <div class="kb-welcome-icon">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.2">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="kb-welcome-text">Asistente técnico interno</div>
+      <div class="kb-welcome-sub">Consulta procedimientos, políticas y documentación técnica. Solo visible para agentes.</div>
+    </div>
+  </div>
+
+  <div class="kb-input-area">
+    <div class="kb-input-row">
+      <textarea
+        class="kb-input"
+        id="kbInput"
+        placeholder="Pregunta sobre procedimientos, protocolos, errores..."
+        rows="1"
+      ></textarea>
+      <button class="kb-send-btn" id="kbSendBtn" aria-label="Enviar consulta">
+        <svg viewBox="0 0 24 24" fill="white" width="13" height="13">
+          <path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="kb-input-hint">Enter para enviar · Shift+Enter nueva línea</div>
+  </div>
+
+</div>
+<!-- /KB PANEL -->
+
 <!-- Transfer modal -->
 <div class="modal-backdrop" id="transferModal" style="display:none">
   <div class="modal">
@@ -215,7 +285,7 @@
 <div id="widgetPreview" style="position:fixed;bottom:20px;right:20px;z-index:900;display:none">
   <iframe src="widget.html" width="340" height="480" style="border:none;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5)"></iframe>
 </div>
-<button id="widgetToggle" style="position:fixed;bottom:20px;right:20px;z-index:1000;width:48px;height:48px;border-radius:50%;background:#3b82f6;border:none;cursor:pointer;color:white;font-size:20px;" title="Mostrar widget de usuario">💬</button>
+<button id="widgetToggle" style="position:fixed;bottom:20px;right:20px;z-index:1000;width:48px;height:48px;border-radius:50%;background:#0000D0;border:none;cursor:pointer;color:white;font-size:20px;" title="Mostrar widget de usuario">💬</button>
 
 <script src="js/app.js"></script>
 </body>
