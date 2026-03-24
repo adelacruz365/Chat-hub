@@ -2,19 +2,19 @@
  * ================================================================
  * app.js — Unified Response Hub Frontend
  * ================================================================
- * Gestiona:
- *  - Carga y renderizado de conversaciones desde la API REST
- *  - Comunicación WebSocket en tiempo real con el backend
- *  - UI de chat: mensajes, respuestas rápidas, resolver, transferir
- *  - Notificaciones toast
- *  - Panel de información del cliente
+ * - Conversaciones en tiempo real (WS + REST)
+ * - Columnas redimensionables (drag resize)
+ * - Dropdowns: info cliente, respuestas rápidas, bot test
+ * - Panel KB: asistente técnico interno
+ * - Panel Search: buscador de información
+ * - Alertas de nuevo mensaje con badge + toast magenta
  * ================================================================
  */
 
 // ─── Config ───────────────────────────────────────────────────
-const API_BASE = '';            // misma origen cuando sirve Node
-const WS_URL   = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
-const AGENT_ID = 'agent-' + Math.random().toString(36).slice(2, 8);
+const API_BASE  = '';
+const WS_URL    = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
+const AGENT_ID  = 'agent-' + Math.random().toString(36).slice(2, 8);
 const AGENT_NAME = 'Agente Hub';
 
 const QUICK_REPLIES = [
@@ -22,42 +22,46 @@ const QUICK_REPLIES = [
   { label: '🔍 Revisando caso',   text: 'Entiendo, déjame revisar tu caso un momento...' },
   { label: '📋 Solicitar datos',  text: '¿Podrías proporcionarme tu número de cuenta o pedido?' },
   { label: '⏱ Espera',           text: 'Un momento, estoy consultando con el equipo...' },
-  { label: '✅ Resolver',         text: 'Gracias por tu paciencia. Hemos resuelto tu consulta. ¿Hay algo más en lo que pueda ayudarte?' },
-  { label: '📞 Llamada',         text: 'Si lo prefieres, podemos hablar por teléfono. ¿Te va bien ahora?' },
+  { label: '✅ Cierre',           text: 'Gracias por tu paciencia. Hemos resuelto tu consulta. ¿Hay algo más?' },
+  { label: '📞 Llamada',          text: 'Si lo prefieres, podemos hablar por teléfono. ¿Te va bien ahora?' },
+  { label: '🔁 Seguimiento',      text: 'Voy a escalar tu caso al equipo técnico. Te contactaremos en breve.' },
+  { label: '📧 Email',            text: 'Te enviaremos un resumen por email con todos los detalles.' },
 ];
 
 // ─── Estado ───────────────────────────────────────────────────
-let conversations   = [];
-let activeConvId    = null;
-let ws              = null;
+let conversations    = [];
+let activeConvId     = null;
+let ws               = null;
 let wsReconnectTimer = null;
-let currentFilter   = 'all';
-let resolvedCount   = 0;
-let searchQuery     = '';
+let currentFilter    = 'all';
+let resolvedCount    = 0;
+let searchQuery      = '';
 
-// ─── Elementos DOM ────────────────────────────────────────────
+// ─── DOM refs ─────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-const convList      = $('convList');
-const queueCount    = $('queueCount');
-const emptyState    = $('emptyState');
-const chatView      = $('chatView');
-const messagesArea  = $('messagesArea');
-const msgInput      = $('msgInput');
-const sendBtn       = $('sendBtn');
-const resolveBtn    = $('resolveBtn');
-const transferBtn   = $('transferBtn');
-const notesBtn      = $('notesBtn');
-const rightPanel    = $('rightPanel');
-const qrPanel       = $('qrPanel');
+const convList     = $('convList');
+const queueCount   = $('queueCount');
+const emptyState   = $('emptyState');
+const chatView     = $('chatView');
+const messagesArea = $('messagesArea');
+const msgInput     = $('msgInput');
+const sendBtn      = $('sendBtn');
+const resolveBtn   = $('resolveBtn');
+const transferBtn  = $('transferBtn');
+const notesBtn     = $('notesBtn');
 const transferModal = $('transferModal');
 
-// ─── Inicialización ───────────────────────────────────────────
+// ─── Init ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   loadConversations();
   connectWebSocket();
   bindEvents();
-  renderQuickReplies();
+  renderDropdownQR();
   initToastContainer();
+  initResizeHandles();
+  initDropdowns();
+  initKbPanel();
+  initSearchPanel();
   setInterval(loadStats, 10000);
   setInterval(updateElapsedTimes, 30000);
 });
@@ -69,7 +73,7 @@ async function loadConversations() {
     conversations = await res.json();
     renderConvList();
     loadStats();
-  } catch (err) {
+  } catch {
     convList.innerHTML = '<div class="loading-state">Error al cargar. Reintentando...</div>';
     setTimeout(loadConversations, 3000);
   }
@@ -86,20 +90,15 @@ async function loadStats() {
 }
 
 async function sendAgentMessage(convId, text) {
-  // Primero por WS (tiempo real), fallback a REST
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({
-      type:           'agent.message',
-      conversationId: convId,
-      agentId:        AGENT_ID,
-      agentName:      AGENT_NAME,
-      text
+      type: 'agent.message', conversationId: convId,
+      agentId: AGENT_ID, agentName: AGENT_NAME, text
     }));
   } else {
     await fetch(`${API_BASE}/api/conversations/${convId}/messages`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ role: 'agent', text })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'agent', text })
     });
   }
 }
@@ -107,15 +106,12 @@ async function sendAgentMessage(convId, text) {
 async function resolveConversation(convId) {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({
-      type:           'conversation.resolve',
-      conversationId: convId,
-      agentId:        AGENT_ID
+      type: 'conversation.resolve', conversationId: convId, agentId: AGENT_ID
     }));
   } else {
     await fetch(`${API_BASE}/api/conversations/${convId}/status`, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ status: 'resolved', agentId: AGENT_ID })
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'resolved', agentId: AGENT_ID })
     });
   }
 }
@@ -123,19 +119,16 @@ async function resolveConversation(convId) {
 async function transferConversation(convId, target, note) {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({
-      type:           'conversation.transfer',
-      conversationId: convId,
-      toAgentId:      target,
-      note
+      type: 'conversation.transfer', conversationId: convId,
+      toAgentId: target, note
     }));
   }
 }
 
 async function testBot(text) {
   const res = await fetch(`${API_BASE}/api/messages/test`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ userId: 'test-user', text, channel: 'web' })
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: 'test-user', text, channel: 'web' })
   });
   const data = await res.json();
   return data.reply;
@@ -144,26 +137,20 @@ async function testBot(text) {
 // ─── WebSocket ────────────────────────────────────────────────
 function connectWebSocket() {
   ws = new WebSocket(WS_URL);
-
   ws.onopen = () => {
-    console.log('[WS] Conectado');
     setWsStatus('connected');
     clearTimeout(wsReconnectTimer);
     ws.send(JSON.stringify({ type: 'agent.join', agentId: AGENT_ID, agentName: AGENT_NAME }));
   };
-
   ws.onmessage = (event) => {
     let data;
     try { data = JSON.parse(event.data); } catch { return; }
     handleWsEvent(data);
   };
-
   ws.onclose = () => {
-    console.log('[WS] Desconectado — reconectando en 3s');
     setWsStatus('error');
     wsReconnectTimer = setTimeout(connectWebSocket, 3000);
   };
-
   ws.onerror = () => setWsStatus('error');
 }
 
@@ -171,20 +158,22 @@ function handleWsEvent(data) {
   switch (data.type) {
 
     case 'message.new': {
-      // Añadir mensaje a la conversación en memoria
       const conv = conversations.find(c => c.id === data.conversationId);
       if (conv) {
         conv.messages = conv.messages || [];
         conv.messages.push(data.message);
         conv.updatedAt = new Date().toISOString();
       }
-      // Si es la conv activa, renderizar mensaje
       if (data.conversationId === activeConvId) {
         appendMessage(data.message);
       } else if (data.message.role === 'user') {
-        // Notificar al agente
         const c = conversations.find(c => c.id === data.conversationId);
-        if (c) showToast(`💬 ${c.userName}: ${data.message.text.substring(0,50)}`, 'info');
+        if (c) {
+          // Marcar conv con badge
+          markConvNew(data.conversationId);
+          // Toast de nuevo mensaje
+          showToast(`💬 ${c.userName}: ${data.message.text.substring(0,60)}`, 'new-msg');
+        }
       }
       renderConvList();
       break;
@@ -192,12 +181,9 @@ function handleWsEvent(data) {
 
     case 'conversation.updated': {
       const conv = conversations.find(c => c.id === data.conversationId);
-      if (conv) {
-        conv.status     = data.status;
-        conv.assignedTo = data.assignedTo;
-      }
+      if (conv) { conv.status = data.status; conv.assignedTo = data.assignedTo; }
       renderConvList();
-      if (data.conversationId === activeConvId) updateRightPanel();
+      if (data.conversationId === activeConvId) updateDropdownInfo();
       break;
     }
 
@@ -205,9 +191,7 @@ function handleWsEvent(data) {
       const idx = conversations.findIndex(c => c.id === data.conversationId);
       if (idx !== -1) {
         conversations[idx].status = 'resolved';
-        if (data.conversationId === activeConvId) {
-          appendSystemMsg('✓ Conversación resuelta');
-        }
+        if (data.conversationId === activeConvId) appendSystemMsg('✓ Conversación resuelta');
       }
       resolvedCount++;
       loadStats();
@@ -222,40 +206,65 @@ function handleWsEvent(data) {
       break;
     }
 
+    case 'conversation.new': {
+      if (!conversations.find(c => c.id === data.conversation.id)) {
+        conversations.unshift(data.conversation);
+        renderConvList();
+        loadStats();
+        showToast(`🆕 Nueva conversación: ${data.conversation.userName}`, 'info');
+      }
+      break;
+    }
+
     case 'agent.online':
       showToast(`🟢 ${data.agent.name} conectado`, 'info');
       break;
-
     case 'agent.disconnected':
-      showToast(`⚪ Agente desconectado`, 'info');
+      showToast('⚪ Agente desconectado', 'info');
       break;
   }
+}
+
+// ─── New message badge ────────────────────────────────────────
+const newConvSet = new Set(); // convIds con mensajes nuevos
+
+function markConvNew(convId) {
+  newConvSet.add(convId);
+  renderConvList();
+}
+
+function clearConvNew(convId) {
+  newConvSet.delete(convId);
+  // no re-render needed here, called on open
 }
 
 // ─── Render Conv List ─────────────────────────────────────────
 function renderConvList() {
   let list = conversations.filter(c => c.status !== 'resolved');
   if (currentFilter !== 'all') list = list.filter(c => c.channel === currentFilter);
-  if (searchQuery)             list = list.filter(c =>
+  if (searchQuery) list = list.filter(c =>
     c.userName.toLowerCase().includes(searchQuery) ||
     (c.topic || '').toLowerCase().includes(searchQuery)
   );
 
-  queueCount.textContent = `${list.length} conversación${list.length !== 1 ? 'es' : ''}`;
+  const total = list.length;
+  queueCount.textContent = total;
 
-  if (!list.length) {
+  if (!total) {
     convList.innerHTML = '<div class="loading-state">Sin conversaciones</div>';
     return;
   }
 
   convList.innerHTML = list.map(c => {
-    const lastMsg = c.messages && c.messages.length ? c.messages[c.messages.length - 1] : null;
-    const preview = lastMsg ? lastMsg.text.substring(0, 45) + (lastMsg.text.length > 45 ? '...' : '') : c.topic;
+    const lastMsg = c.messages?.length ? c.messages[c.messages.length - 1] : null;
+    const preview = lastMsg ? lastMsg.text.substring(0, 40) + (lastMsg.text.length > 40 ? '…' : '') : c.topic;
     const elapsed = getElapsed(c.updatedAt || c.createdAt);
     const isActive = c.id === activeConvId;
+    const isNew    = newConvSet.has(c.id) && !isActive;
 
     return `
-    <div class="conv-item${isActive ? ' active' : ''}" data-id="${c.id}" onclick="openConv('${c.id}')">
+    <div class="conv-item${isActive ? ' active' : ''}${isNew ? ' has-new' : ''}"
+         data-id="${c.id}" onclick="openConv('${c.id}')">
       <div class="conv-top">
         <div class="conv-avatar ${getAvClass(c.channel)}">${getInitials(c.userName)}</div>
         <div class="conv-info">
@@ -276,32 +285,29 @@ function renderConvList() {
 // ─── Open Conversation ────────────────────────────────────────
 async function openConv(convId) {
   activeConvId = convId;
-  const conv   = conversations.find(c => c.id === convId);
+  clearConvNew(convId);
+
+  const conv = conversations.find(c => c.id === convId);
   if (!conv) return;
 
-  // Tomar la conversación si está pendiente
   if (conv.status === 'pending' || conv.status === 'waiting') {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
-        type:           'agent.take',
-        conversationId: convId,
-        agentId:        AGENT_ID,
-        agentName:      AGENT_NAME
+        type: 'agent.take', conversationId: convId,
+        agentId: AGENT_ID, agentName: AGENT_NAME
       }));
     }
-    conv.status     = 'active';
+    conv.status = 'active';
     conv.assignedTo = AGENT_ID;
   }
 
-  // Mostrar UI de chat
   emptyState.style.display = 'none';
   chatView.style.display   = 'flex';
   chatView.style.flexDirection = 'column';
   chatView.style.flex = '1';
   chatView.style.overflow = 'hidden';
-  rightPanel.style.display = 'flex';
 
-  // Poblar header
+  // Populate chat header
   const av = $('chatAvatar');
   av.textContent = getInitials(conv.userName);
   av.className   = 'conv-avatar ' + getAvClass(conv.channel);
@@ -309,17 +315,14 @@ async function openConv(convId) {
   $('chatChannel').textContent  = getChLabel(conv.channel);
   $('chatTopic').textContent    = conv.topic || '';
 
-  // Render mensajes
+  // Messages
   messagesArea.innerHTML = '';
   (conv.messages || []).forEach(m => appendMessage(m, false));
-  messagesArea.scrollTop = messagesArea.scrollHeight;
+  setTimeout(() => { messagesArea.scrollTop = messagesArea.scrollHeight; }, 50);
 
-  updateRightPanel();
+  updateDropdownInfo();
   renderConvList();
   msgInput.focus();
-
-  // Scroll smooth al final
-  setTimeout(() => { messagesArea.scrollTop = messagesArea.scrollHeight; }, 50);
 }
 
 // ─── Append Message ───────────────────────────────────────────
@@ -332,13 +335,11 @@ function appendMessage(msg, scroll = true) {
   } else {
     const row = document.createElement('div');
     row.className = `msg-row ${msg.role}`;
-
     const avClass = msg.role === 'user' ? 'av-user' : msg.role === 'bot' ? 'av-bot' : 'av-agent';
     const conv    = conversations.find(c => c.id === activeConvId);
     const avLabel = msg.role === 'user'
       ? (conv ? getInitials(conv.userName) : 'U')
       : msg.role === 'bot' ? '🤖' : 'AG';
-
     row.innerHTML = `
       <div class="msg-avatar ${avClass}">${avLabel}</div>
       <div>
@@ -350,25 +351,84 @@ function appendMessage(msg, scroll = true) {
   if (scroll) setTimeout(() => { messagesArea.scrollTop = messagesArea.scrollHeight; }, 30);
 }
 
-function appendSystemMsg(text) {
-  appendMessage({ role: 'system', text });
-}
+function appendSystemMsg(text) { appendMessage({ role: 'system', text }); }
 
-// ─── Right Panel ──────────────────────────────────────────────
-function updateRightPanel() {
+// ─── Dropdown: info del cliente ───────────────────────────────
+function updateDropdownInfo() {
   const conv = conversations.find(c => c.id === activeConvId);
   if (!conv) return;
+  $('dpName').textContent  = conv.userName;
+  $('dpStatus').textContent = getStatusLabel(conv.status);
+  $('dpStart').textContent  = formatTime(conv.createdAt);
+  $('dpAgent').textContent  = conv.assignedTo ? AGENT_NAME : '—';
 
-  $('rpName').textContent    = conv.userName;
-  $('rpStatus').textContent  = getStatusLabel(conv.status);
-  $('rpStart').textContent   = formatTime(conv.createdAt);
-  $('rpAgent').textContent   = conv.assignedTo ? AGENT_NAME : '—';
-
-  const chEl = $('rpChannel');
+  const chEl = $('dpChannel');
   chEl.innerHTML = `<span class="ch-badge ${getChBadgeClass(conv.channel)}">${getChLabel(conv.channel)}</span>`;
 
-  const tagsEl = $('rpTags');
-  tagsEl.innerHTML = (conv.tags || []).map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+  const tagsEl = $('dpTags');
+  if (conv.tags?.length) {
+    tagsEl.innerHTML = conv.tags.map(t => `<span class="dp-tag">${escHtml(t)}</span>`).join('');
+  } else {
+    tagsEl.innerHTML = '<span style="font-size:11px;color:var(--text-3)">Sin etiquetas</span>';
+  }
+}
+
+// ─── Dropdown: Respuestas rápidas ─────────────────────────────
+function renderDropdownQR() {
+  renderQRList('');
+  // Filter
+  $('dpQRSearch').addEventListener('input', e => {
+    renderQRList(e.target.value.toLowerCase().trim());
+  });
+}
+
+function renderQRList(filter) {
+  const list = filter
+    ? QUICK_REPLIES.filter(q => q.label.toLowerCase().includes(filter) || q.text.toLowerCase().includes(filter))
+    : QUICK_REPLIES;
+
+  $('dpQRList').innerHTML = list.map(qr => `
+    <button class="dp-qr-item" onclick="insertQR('${escAttr(qr.text)}')">
+      <span class="dp-qr-label">${escHtml(qr.label)}</span>
+      <span class="dp-qr-preview">${escHtml(qr.text)}</span>
+    </button>`
+  ).join('') || '<div style="padding:8px 10px;font-size:11px;color:var(--text-3)">Sin resultados</div>';
+}
+
+function insertQR(text) {
+  msgInput.value = text;
+  msgInput.focus();
+  // Cerrar dropdown
+  closeAllDropdowns();
+}
+window.insertQR = insertQR;
+
+// ─── Dropdowns logic ──────────────────────────────────────────
+function initDropdowns() {
+  const dropdowns = [
+    { wrap: 'clientInfoWrap',  btn: 'clientInfoBtn'  },
+    { wrap: 'quickRepliesWrap', btn: 'quickRepliesBtn' },
+  ];
+
+  dropdowns.forEach(({ wrap, btn }) => {
+    const wrapEl = $(wrap);
+    const btnEl  = $(btn);
+    btnEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = wrapEl.classList.contains('open');
+      closeAllDropdowns();
+      if (!isOpen) wrapEl.classList.add('open');
+    });
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.dropdown-wrap')) closeAllDropdowns();
+  });
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.dropdown-wrap.open').forEach(el => el.classList.remove('open'));
 }
 
 // ─── Send Message ─────────────────────────────────────────────
@@ -376,17 +436,14 @@ async function doSend() {
   const text = msgInput.value.trim();
   if (!text || !activeConvId) return;
 
-  // Optimistic UI — añadir mensaje inmediatamente
-  const now = new Date().toISOString();
+  const now  = new Date().toISOString();
   const msg  = { role: 'agent', text, timestamp: now };
-
   const conv = conversations.find(c => c.id === activeConvId);
   if (conv) { conv.messages = conv.messages || []; conv.messages.push(msg); }
 
   appendMessage(msg);
   msgInput.value = '';
   msgInput.style.height = 'auto';
-
   await sendAgentMessage(activeConvId, text);
 }
 
@@ -397,14 +454,12 @@ function bindEvents() {
   msgInput.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
   });
-
-  // Auto-resize textarea
   msgInput.addEventListener('input', () => {
     msgInput.style.height = 'auto';
     msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
   });
 
-  // Channel filter tabs
+  // Channel filter
   $('channelTabs').addEventListener('click', e => {
     const tab = e.target.closest('.ch-tab');
     if (!tab) return;
@@ -427,126 +482,318 @@ function bindEvents() {
     appendSystemMsg('✓ Conversación resuelta');
     resolvedCount++;
     loadStats();
-
-    // Quitar de la lista
     const idx = conversations.findIndex(c => c.id === activeConvId);
     if (idx !== -1) conversations[idx].status = 'resolved';
-
-    // Reset UI
     activeConvId = null;
-    chatView.style.display   = 'none';
-    rightPanel.style.display = 'none';
+    chatView.style.display = 'none';
     emptyState.style.display = 'flex';
     renderConvList();
-    showToast('✓ Conversación resuelta correctamente', 'success');
+    showToast('✓ Conversación resuelta', 'success');
   });
 
   // Transfer
-  transferBtn.addEventListener('click', () => {
-    transferModal.style.display = 'flex';
-  });
-  $('cancelTransfer').addEventListener('click', () => {
-    transferModal.style.display = 'none';
-  });
+  transferBtn.addEventListener('click', () => { transferModal.style.display = 'flex'; });
+  $('cancelTransfer').addEventListener('click', () => { transferModal.style.display = 'none'; });
   $('confirmTransfer').addEventListener('click', async () => {
     if (!activeConvId) return;
     const target = $('transferTarget').value;
     const note   = $('transferNote').value;
     await transferConversation(activeConvId, target, note);
-    appendSystemMsg(`↔ Conversación transferida a: ${target}`);
+    appendSystemMsg(`↔ Transferida a: ${target}`);
     transferModal.style.display = 'none';
     showToast('↔ Conversación transferida', 'info');
-
     const conv = conversations.find(c => c.id === activeConvId);
     if (conv) { conv.status = 'pending'; conv.assignedTo = null; }
-
     activeConvId = null;
-    chatView.style.display   = 'none';
-    rightPanel.style.display = 'none';
+    chatView.style.display = 'none';
     emptyState.style.display = 'flex';
     renderConvList();
   });
 
-  // Notes btn
+  // Notes
   notesBtn.addEventListener('click', () => {
     const note = prompt('Añadir nota interna:');
     if (note) appendSystemMsg(`📝 Nota: ${note}`);
   });
 
-  // Quick replies toggle
-  document.querySelector('.qr-trigger')?.addEventListener('click', () => {
-    qrPanel.style.display = qrPanel.style.display === 'none' ? 'block' : 'none';
-  });
-
-  // Bot test
-  $('botTestBtn').addEventListener('click', async () => {
-    const text = $('botTestInput').value.trim();
-    if (!text) return;
-    $('botTestResult').textContent = 'Procesando...';
-    try {
-      const reply = await testBot(text);
-      $('botTestResult').textContent = '🤖 ' + reply;
-    } catch (e) {
-      $('botTestResult').textContent = 'Error: backend no disponible';
-    }
-    $('botTestInput').value = '';
-  });
-  $('botTestInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') $('botTestBtn').click();
-  });
-
-  // Web widget toggle
-  $('widgetToggle').addEventListener('click', () => {
-    const wp = $('widgetPreview');
-    const visible = wp.style.display !== 'none';
-    wp.style.display    = visible ? 'none' : 'block';
-    $('widgetToggle').style.bottom = visible ? '20px' : '510px';
-  });
-
-  // Close modal on backdrop click
+  // Close modal on backdrop
   transferModal.addEventListener('click', e => {
     if (e.target === transferModal) transferModal.style.display = 'none';
   });
 }
 
-// ─── Quick Replies ────────────────────────────────────────────
-function renderQuickReplies() {
-  // Sidebar
-  const sidebarQR = $('sidebarQR');
-  sidebarQR.innerHTML = QUICK_REPLIES.map(qr =>
-    `<button class="qr-btn" onclick="insertQR('${escAttr(qr.text)}')">${escHtml(qr.label)}</button>`
-  ).join('');
+// ══════════════════════════════════════════════════════════════
+// RESIZE HANDLES
+// ══════════════════════════════════════════════════════════════
+function initResizeHandles() {
+  const handle  = $('resizeLeft');
+  const sidebar = $('sidebar');
 
-  // Panel flotante
-  const qrPanelBody = $('qrPanelBody');
-  qrPanelBody.innerHTML = QUICK_REPLIES.map(qr =>
-    `<button class="qr-item" onclick="insertQR('${escAttr(qr.text)}')">${escHtml(qr.label)} — <span style="color:var(--text-3)">${escHtml(qr.text.substring(0,40))}...</span></button>`
-  ).join('');
+  let dragging = false;
+  let startX   = 0;
+  let startW   = 0;
+
+  handle.addEventListener('mousedown', (e) => {
+    dragging = true;
+    startX   = e.clientX;
+    startW   = sidebar.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const delta = e.clientX - startX;
+    const newW  = Math.max(180, Math.min(480, startW + delta));
+    sidebar.style.width = newW + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
 }
 
-function insertQR(text) {
-  msgInput.value = text;
-  msgInput.focus();
-  qrPanel.style.display = 'none';
-}
-window.insertQR = insertQR; // global para onclick
+// ══════════════════════════════════════════════════════════════
+// KB PANEL — Asistente Técnico Interno
+// ══════════════════════════════════════════════════════════════
+let kbOpen    = false;
+let kbWaiting = false;
 
-// ─── Toast Notifications ──────────────────────────────────────
+function initKbPanel() {
+  const kbPanel     = $('kbPanel');
+  const kbToggleBtn = $('kbToggleBtn');
+  const kbInput     = $('kbInput');
+  const kbSendBtn   = $('kbSendBtn');
+  const kbMessages  = $('kbMessages');
+
+  // Column is always visible — toggle button just focuses input
+  if (kbToggleBtn) {
+    kbToggleBtn.classList.add('active');
+    kbToggleBtn.addEventListener('click', () => { kbInput && kbInput.focus(); });
+  }
+
+  // Shortcuts
+  document.querySelectorAll('.kb-shortcut').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const q = btn.dataset.query;
+      if (q) { kbInput.value = q; kbSendBtn.click(); }
+    });
+  });
+
+  // Send
+  async function kbSend() {
+    const text = kbInput.value.trim();
+    if (!text || kbWaiting) return;
+    const welcome = kbMessages.querySelector('.kb-welcome');
+    if (welcome) welcome.remove();
+
+    kbInput.value = '';
+    kbInput.style.height = 'auto';
+    kbWaiting = true;
+    kbSendBtn.disabled = true;
+
+    kbAddMsg('kb-user', text, kbMessages);
+    const typing = kbShowTyping(kbMessages);
+
+    try {
+      const reply = await kbCallBot(text);
+      typing.remove();
+      kbAddMsg('kb-assistant', reply, kbMessages);
+    } catch {
+      typing.remove();
+      kbAddMsg('kb-assistant', '⚠️ Error al contactar con el asistente. Verifica la conexión.', kbMessages);
+    }
+
+    kbWaiting = false;
+    kbSendBtn.disabled = false;
+    kbInput.focus();
+  }
+
+  kbSendBtn.addEventListener('click', kbSend);
+  kbInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kbSend(); }
+  });
+  kbInput.addEventListener('input', () => {
+    kbInput.style.height = 'auto';
+    kbInput.style.height = Math.min(kbInput.scrollHeight, 90) + 'px';
+  });
+
+  // Alt+K focuses the assistant input
+  document.addEventListener('keydown', e => {
+    if (e.altKey && e.key === 'k') { e.preventDefault(); kbInput.focus(); }
+  });
+}
+
+// Placeholder bot — reemplazar con endpoint real
+async function kbCallBot(text) {
+  // TODO: await fetch('/api/kb/ask', { method:'POST', body: JSON.stringify({text}) })
+  await new Promise(r => setTimeout(r, 800));
+  return `[Bot pendiente] Pregunta recibida: "${text}". Conecta tu endpoint en kbCallBot() en app.js.`;
+}
+
+function kbAddMsg(role, text, container) {
+  const now  = new Date();
+  const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  const row  = document.createElement('div');
+  row.className = `kb-msg-row ${role}`;
+  row.innerHTML = `
+    <div class="kb-bubble">${escHtml(text)}</div>
+    <div class="kb-msg-meta">${role === 'kb-user' ? 'Tú' : 'Asistente'} · ${time}</div>`;
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+}
+
+function kbShowTyping(container) {
+  const row = document.createElement('div');
+  row.className = 'kb-msg-row kb-assistant';
+  row.innerHTML = `
+    <div class="kb-typing">
+      <div class="kb-typing-dots">
+        <div class="kb-dot"></div><div class="kb-dot"></div><div class="kb-dot"></div>
+      </div>
+      <span class="kb-typing-label">Consultando base de conocimiento...</span>
+    </div>`;
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+  return row;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SEARCH PANEL — Buscador de información interna
+// ══════════════════════════════════════════════════════════════
+
+// Mock data para demo — reemplazar con API real
+const MOCK_DOCS = [
+  { title: 'Protocolo de escalado N1 → N2', snippet: 'Pasos para escalar una conversación al equipo de nivel 2 cuando el agente no puede resolver el caso en primer contacto.', tags: ['escalado', 'protocolo'], category: 'Soporte' },
+  { title: 'WhatsApp Business API — Configuración inicial', snippet: 'Requisitos de cuenta, tokens de acceso, webhooks y plantillas aprobadas para envío de mensajes HSM.', tags: ['whatsapp', 'api', 'config'], category: 'Integración' },
+  { title: 'Microsoft Teams — Graph API y permisos', snippet: 'Permisos delegados y de aplicación necesarios. Configuración de conectores y webhooks de Teams.', tags: ['teams', 'graph', 'api'], category: 'Integración' },
+  { title: 'SLA y tiempos de respuesta', snippet: 'Tiempos máximos por canal: WhatsApp 2min, Teams 5min, Web 1min. Penalizaciones y escalado automático.', tags: ['sla', 'tiempos'], category: 'Política' },
+  { title: 'Reset de credenciales de cliente', snippet: 'Proceso verificado para resetear contraseñas y tokens de acceso. Requiere verificación de identidad en dos pasos.', tags: ['credenciales', 'seguridad'], category: 'Soporte' },
+  { title: 'GDPR — Tratamiento de datos en conversaciones', snippet: 'Política de retención, anonimización y borrado de datos de conversaciones. Tiempo máximo de almacenamiento: 90 días.', tags: ['gdpr', 'privacidad', 'legal'], category: 'Legal' },
+  { title: 'Incidencias críticas — Protocolo P1', snippet: 'Definición de incidencia crítica (>500 usuarios afectados). Pasos de comunicación interna y cliente.', tags: ['incidencia', 'critica', 'p1'], category: 'Soporte' },
+  { title: 'Licencias Microsoft 365 para Teams Bot', snippet: 'Se requiere licencia E3 o superior, o Teams Essentials + Azure Bot Services. Coste aprox. €12/usuario/mes.', tags: ['licencias', 'teams', 'microsoft'], category: 'Licencias' },
+  { title: 'Códigos de error comunes y soluciones', snippet: 'ERR_WS_TIMEOUT: reconectar WS. ERR_API_401: renovar token. ERR_QUEUE_FULL: escalar capacidad.', tags: ['errores', 'debug'], category: 'Técnico' },
+];
+
+let searchOpen = false;
+
+function initSearchPanel() {
+  const panel        = $('searchPanel');
+  const toggleBtn    = $('searchToggleBtn');
+  const closeBtn     = $('searchCloseBtn');
+  const spInput      = $('spInput');
+  const spSearchBtn  = $('spSearchBtn');
+  const spResults    = $('spResults');
+
+  function openSearch() {
+    searchOpen = true;
+    panel.classList.add('open');
+    toggleBtn.classList.add('active');
+    spInput.focus();
+  }
+  function closeSearch() {
+    searchOpen = false;
+    panel.classList.remove('open');
+    toggleBtn.classList.remove('active');
+  }
+
+  toggleBtn.addEventListener('click', () => searchOpen ? closeSearch() : openSearch());
+  closeBtn.addEventListener('click', closeSearch);
+
+  // Categories
+  document.querySelectorAll('.sp-cat').forEach(btn => {
+    btn.addEventListener('click', () => {
+      spInput.value = btn.dataset.q;
+      runSearch(btn.dataset.q);
+    });
+  });
+
+  // Search
+  function runSearch(query) {
+    if (!query.trim()) return;
+    spResults.innerHTML = renderSkeletons();
+    setTimeout(() => {
+      const q = query.toLowerCase();
+      const results = MOCK_DOCS.filter(d =>
+        d.title.toLowerCase().includes(q) ||
+        d.snippet.toLowerCase().includes(q) ||
+        d.tags.some(t => t.includes(q)) ||
+        d.category.toLowerCase().includes(q)
+      );
+      renderSearchResults(results, query, spResults);
+    }, 500); // simula latencia
+  }
+
+  spSearchBtn.addEventListener('click', () => runSearch(spInput.value));
+  spInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') runSearch(spInput.value);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.altKey && e.key === 's') { e.preventDefault(); searchOpen ? closeSearch() : openSearch(); }
+  });
+}
+
+function renderSkeletons() {
+  return `<div class="sp-loading">${[1,2,3].map(() => `
+    <div class="sp-skel">
+      <div class="sp-skel-line wide"></div>
+      <div class="sp-skel-line full"></div>
+      <div class="sp-skel-line narrow"></div>
+    </div>`).join('')}</div>`;
+}
+
+function renderSearchResults(results, query, container) {
+  if (!results.length) {
+    container.innerHTML = `
+      <div class="sp-empty-state">
+        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1" opacity="0.2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <div class="sp-empty-text">No se encontraron resultados para "<strong>${escHtml(query)}</strong>".</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="font-size:11px;color:var(--text-3);margin-bottom:4px">
+      ${results.length} resultado${results.length !== 1 ? 's' : ''} para "<strong style="color:var(--text-2)">${escHtml(query)}</strong>"
+    </div>
+    ${results.map(r => `
+      <div class="sp-result-card">
+        <div class="sp-result-title">${escHtml(r.title)}</div>
+        <div class="sp-result-snippet">${escHtml(r.snippet)}</div>
+        <div class="sp-result-meta">
+          <span class="sp-result-tag">${escHtml(r.category)}</span>
+          ${r.tags.map(t => `<span style="color:var(--text-3)">#${escHtml(t)}</span>`).join(' ')}
+        </div>
+      </div>`).join('')}`;
+}
+
+// ── Toast Notifications ───────────────────────────────────────
 function initToastContainer() {
-  const el = document.createElement('div');
-  el.id = 'toastContainer';
-  document.body.appendChild(el);
+  // ya está en el HTML
 }
 
 function showToast(msg, type = 'info') {
+  const container = $('toastContainer');
   const el = document.createElement('div');
   el.className = `toast ${type}`;
   el.textContent = msg;
-  $('toastContainer').appendChild(el);
-  setTimeout(() => el.remove(), 4000);
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity 0.3s';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 300);
+  }, 4000);
 }
 
-// ─── Utils ────────────────────────────────────────────────────
+// ── Utils ─────────────────────────────────────────────────────
 function getInitials(name = '') {
   return name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
 }
@@ -574,7 +821,7 @@ function getElapsed(iso) {
   if (!iso) return '';
   const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
   if (diff < 60)   return diff + 's';
-  if (diff < 3600) return Math.floor(diff/60) + 'm ' + (diff%60) + 's';
+  if (diff < 3600) return Math.floor(diff/60) + 'm';
   return Math.floor(diff/3600) + 'h';
 }
 function updateElapsedTimes() { renderConvList(); }
@@ -582,7 +829,7 @@ function escHtml(s = '') {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function escAttr(s = '') {
-  return String(s).replace(/'/g, "\\'").replace(/\n/g, ' ');
+  return String(s).replace(/'/g,"\\'").replace(/\n/g,' ');
 }
 function setWsStatus(status) {
   const el = $('wsStatus');
@@ -590,152 +837,4 @@ function setWsStatus(status) {
   el.title = status === 'connected' ? 'WebSocket conectado' : 'WebSocket desconectado';
 }
 
-// Expose openConv globally (used in inline onclick)
 window.openConv = openConv;
-
-// ═══════════════════════════════════════════════════════════════
-// KB PANEL — Asistente Técnico Interno
-// Solo frontend: estructura lista para conectar el bot.
-// Para activar: implementar kbCallBot(text) → devuelve string
-// ═══════════════════════════════════════════════════════════════
-
-const kbPanel      = $('kbPanel');
-const kbToggleBtn  = $('kbToggleBtn');
-const kbCloseBtn   = $('kbCloseBtn');
-const kbMessages   = $('kbMessages');
-const kbInput      = $('kbInput');
-const kbSendBtn    = $('kbSendBtn');
-
-let kbOpen     = false;
-let kbWaiting  = false;
-
-// ── Abrir / cerrar ────────────────────────────────────────────
-function openKbPanel() {
-  kbOpen = true;
-  kbPanel.classList.add('open');
-  kbToggleBtn.classList.add('active');
-  kbInput.focus();
-}
-
-function closeKbPanel() {
-  kbOpen = false;
-  kbPanel.classList.remove('open');
-  kbToggleBtn.classList.remove('active');
-}
-
-kbToggleBtn.addEventListener('click', () => kbOpen ? closeKbPanel() : openKbPanel());
-kbCloseBtn.addEventListener('click', closeKbPanel);
-
-// ── Shortcuts ────────────────────────────────────────────────
-document.querySelectorAll('.kb-shortcut').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const q = btn.dataset.query;
-    if (q) { kbInput.value = q; kbSendBtn.click(); }
-  });
-});
-
-// ── Send ──────────────────────────────────────────────────────
-async function kbSend() {
-  const text = kbInput.value.trim();
-  if (!text || kbWaiting) return;
-
-  // Limpiar welcome si existe
-  const welcome = kbMessages.querySelector('.kb-welcome');
-  if (welcome) welcome.remove();
-
-  kbInput.value = '';
-  kbInput.style.height = 'auto';
-  kbWaiting = true;
-  kbSendBtn.disabled = true;
-
-  // Mensaje del agente
-  kbAddMessage('kb-user', text);
-
-  // Typing indicator
-  const typing = kbShowTyping();
-
-  try {
-    // ── PUNTO DE INTEGRACIÓN ──────────────────────────────────
-    // Reemplaza esta llamada con tu bot real cuando esté listo:
-    //   const reply = await kbCallBot(text);
-    // Por ahora simula un delay visual de carga.
-    const reply = await kbCallBot(text);
-    typing.remove();
-    kbAddMessage('kb-assistant', reply);
-  } catch (err) {
-    typing.remove();
-    kbAddMessage('kb-assistant', '⚠️ Error al contactar con el asistente. Verifica la conexión con el backend.');
-  }
-
-  kbWaiting = false;
-  kbSendBtn.disabled = false;
-  kbInput.focus();
-}
-
-// ── Placeholder del bot (reemplazar con implementación real) ──
-async function kbCallBot(text) {
-  // TODO: conectar con tu endpoint de bot
-  // Ejemplo: const res = await fetch('/api/kb/ask', { method:'POST', body: JSON.stringify({text}) });
-  // return (await res.json()).reply;
-  await new Promise(r => setTimeout(r, 900)); // simula latencia
-  return `[Bot pendiente de conexión] Pregunta recibida: "${text}". Conecta tu endpoint en kbCallBot() dentro de app.js.`;
-}
-
-// ── Render mensajes ───────────────────────────────────────────
-function kbAddMessage(role, text) {
-  const now  = new Date();
-  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-
-  const row  = document.createElement('div');
-  row.className = `kb-msg-row ${role}`;
-
-  const label = role === 'kb-user' ? 'Tú' : 'Asistente';
-
-  row.innerHTML = `
-    <div class="kb-bubble">${escHtml(text)}</div>
-    <div class="kb-msg-meta">${label} · ${time}</div>`;
-
-  kbMessages.appendChild(row);
-  kbScrollBottom();
-}
-
-function kbShowTyping() {
-  const row = document.createElement('div');
-  row.className = 'kb-msg-row kb-assistant';
-  row.innerHTML = `
-    <div class="kb-typing">
-      <div class="kb-typing-dots">
-        <div class="kb-dot"></div>
-        <div class="kb-dot"></div>
-        <div class="kb-dot"></div>
-      </div>
-      <span class="kb-typing-label">Consultando base de conocimiento...</span>
-    </div>`;
-  kbMessages.appendChild(row);
-  kbScrollBottom();
-  return row;
-}
-
-function kbScrollBottom() {
-  setTimeout(() => { kbMessages.scrollTop = kbMessages.scrollHeight; }, 30);
-}
-
-// ── Input eventos ─────────────────────────────────────────────
-kbSendBtn.addEventListener('click', kbSend);
-
-kbInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kbSend(); }
-});
-
-kbInput.addEventListener('input', () => {
-  kbInput.style.height = 'auto';
-  kbInput.style.height = Math.min(kbInput.scrollHeight, 100) + 'px';
-});
-
-// ── Shortcut de teclado: Alt+K abre/cierra el panel ──────────
-document.addEventListener('keydown', e => {
-  if (e.altKey && e.key === 'k') {
-    e.preventDefault();
-    kbOpen ? closeKbPanel() : openKbPanel();
-  }
-});
