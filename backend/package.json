@@ -22,7 +22,17 @@
     "ws": "^8.16.0"
   },
   "devDependencies": {
+<<<<<<< HEAD
+    "nodemon": "^3.0.3",
+    "jest": "^29.7.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+=======
     "jest": "^29.7.0",
     "nodemon": "^3.0.3"
   }
+>>>>>>> f2e949f0fec9413263e881754ae702fa23ca6cc3
 }
