@@ -159,22 +159,38 @@ function handleWsEvent(data) {
 
     case 'message.new': {
       const conv = conversations.find(c => c.id === data.conversationId);
+      let isDuplicate = false;
+
       if (conv) {
-        conv.messages = conv.messages || [];
-        conv.messages.push(data.message);
+        // FIX: Buscar si el mensaje que llega es el eco de nuestro envío optimista
+        const optIndex = (conv.messages || []).findIndex(m => m._optimistic && m.text === data.message.text);
+
+        if (optIndex !== -1) {
+          isDuplicate = true;
+          // Le quitamos la marca y actualizamos datos con los reales del servidor
+          conv.messages[optIndex]._optimistic = false;
+          if (data.message.timestamp) conv.messages[optIndex].timestamp = data.message.timestamp;
+        } else {
+          // Si no es un duplicado nuestro, lo guardamos normal
+          conv.messages = conv.messages || [];
+          conv.messages.push(data.message);
+        }
         conv.updatedAt = new Date().toISOString();
       }
-      if (data.conversationId === activeConvId) {
-        appendMessage(data.message);
-      } else if (data.message.role === 'user') {
-        const c = conversations.find(c => c.id === data.conversationId);
-        if (c) {
-          // Marcar conv con badge
-          markConvNew(data.conversationId);
-          // Toast de nuevo mensaje
-          showToast(`💬 ${c.userName}: ${data.message.text.substring(0,60)}`, 'new-msg');
+
+      // Solo pintamos el mensaje en pantalla si NO es un duplicado
+      if (!isDuplicate) {
+        if (data.conversationId === activeConvId) {
+          appendMessage(data.message);
+        } else if (data.message.role === 'user') {
+          const c = conversations.find(c => c.id === data.conversationId);
+          if (c) {
+            markConvNew(data.conversationId);
+            showToast(`💬 ${c.userName}: ${data.message.text.substring(0,60)}`, 'new-msg');
+          }
         }
       }
+      
       renderConvList();
       break;
     }
@@ -437,7 +453,7 @@ async function doSend() {
   if (!text || !activeConvId) return;
 
   const now  = new Date().toISOString();
-  const msg  = { role: 'agent', text, timestamp: now };
+  const msg  = { role: 'agent', text, timestamp: now, _optimistic: true };
   const conv = conversations.find(c => c.id === activeConvId);
   if (conv) { conv.messages = conv.messages || []; conv.messages.push(msg); }
 
@@ -452,7 +468,7 @@ function bindEvents() {
   sendBtn.addEventListener('click', doSend);
 
   msgInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); doSend(); }
   });
   msgInput.addEventListener('input', () => {
     msgInput.style.height = 'auto';
