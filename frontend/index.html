@@ -739,11 +739,27 @@ function renderPanels() {
             <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5.5"/><path d="M7 4.5V7l1.5 1.5"/></svg>
             Plantillas
           </button>
+          <div class="dropdown-wrap toolbar-dropdown" id="qrWrap-${convId}">
+            <button class="toolbar-btn dropdown-trigger" onclick="toggleQR('${convId}')">
+              <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
+                <path d="M12 1H2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.5l1.5 2.5 1.5-2.5H12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
+              </svg>
+              Respuestas
+              <svg class="chevron" viewBox="0 0 10 6" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
+            </button>
+            <div class="dropdown-panel dp-qr toolbar-qr-panel" id="qrPanel-${convId}">
+              <div class="dp-section-title">Respuestas rápidas</div>
+              <div class="dp-qr-search-wrap">
+                <input class="dp-qr-search" placeholder="Filtrar respuestas..." oninput="filterQR('${convId}', this.value)">
+              </div>
+              <div class="dp-qr-list" id="qrList-${convId}"></div>
+            </div>
+          </div>
         </div>
         <div class="input-row d-flex align-items-end gap-2">
-          <textarea class="msg-input" placeholder="Escribe un mensaje..." rows="1"
+          <textarea class="msg-input" id="msgInput-${convId}" placeholder="Escribe un mensaje..." rows="1"
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPanelMsg(this,'${convId}')}"></textarea>
-          <button class="send-btn" onclick="sendPanelMsg(this.previousElementSibling,'${convId}')">
+          <button class="send-btn" onclick="sendPanelMsg(document.getElementById('msgInput-${convId}'),'${convId}')">
             <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
           </button>
         </div>
@@ -751,6 +767,63 @@ function renderPanels() {
     </div>`;
   }).join('');
 }
+
+// ── Quick Replies per panel ──────────────────────────────────
+const QUICK_REPLIES_DATA = [
+  { label: '👋 Saludo inicial',  text: 'Hola, soy el agente. ¿En qué puedo ayudarte?' },
+  { label: '🔍 Revisando caso',  text: 'Entiendo, déjame revisar tu caso un momento...' },
+  { label: '📋 Solicitar datos', text: '¿Podrías proporcionarme tu número de cuenta o pedido?' },
+  { label: '⏱ Espera',          text: 'Un momento, estoy consultando con el equipo...' },
+  { label: '✅ Cierre',          text: 'Gracias por tu paciencia. Hemos resuelto tu consulta. ¿Hay algo más?' },
+  { label: '📞 Llamada',         text: 'Si lo prefieres, podemos hablar por teléfono. ¿Te va bien ahora?' },
+  { label: '🔁 Seguimiento',     text: 'Voy a escalar tu caso al equipo técnico. Te contactaremos en breve.' },
+  { label: '📧 Email',           text: 'Te enviaremos un resumen por email con todos los detalles.' },
+];
+
+function renderQRList(convId, filter = '') {
+  const list = document.getElementById('qrList-' + convId);
+  if (!list) return;
+  const items = filter
+    ? QUICK_REPLIES_DATA.filter(q => q.label.toLowerCase().includes(filter.toLowerCase()) || q.text.toLowerCase().includes(filter.toLowerCase()))
+    : QUICK_REPLIES_DATA;
+  list.innerHTML = items.map(q => `
+    <button class="dp-qr-item" onclick="useQuickReply('${convId}', ${JSON.stringify(q.text).replace(/'/g, "&#39;")})">
+      <span class="dp-qr-label">${escHtml(q.label)}</span>
+      <span class="dp-qr-preview">${escHtml(q.text)}</span>
+    </button>`).join('');
+}
+
+function toggleQR(convId) {
+  const wrap = document.getElementById('qrWrap-' + convId);
+  const isOpen = wrap.classList.contains('open');
+  // Cerrar todos los demás
+  document.querySelectorAll('.dropdown-wrap.open').forEach(w => w.classList.remove('open'));
+  if (!isOpen) {
+    wrap.classList.add('open');
+    renderQRList(convId);
+  }
+}
+
+function filterQR(convId, value) {
+  renderQRList(convId, value);
+}
+
+function useQuickReply(convId, text) {
+  const input = document.getElementById('msgInput-' + convId);
+  if (input) {
+    input.value = text;
+    input.focus();
+  }
+  const wrap = document.getElementById('qrWrap-' + convId);
+  if (wrap) wrap.classList.remove('open');
+}
+
+// Cerrar dropdowns al hacer click fuera
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown-wrap')) {
+    document.querySelectorAll('.dropdown-wrap.open').forEach(w => w.classList.remove('open'));
+  }
+});
 
 function sendPanelMsg(textarea, convId) {
   const text = textarea.value.trim();
