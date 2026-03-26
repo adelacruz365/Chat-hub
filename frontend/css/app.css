@@ -148,10 +148,16 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
 
 /* ── Conv item ───────────────────────────────────────────── */
 .conv-item {
-  padding: 8px 9px; border-radius: 6px; cursor: pointer;
+  padding: 6px 9px; border-radius: 6px; cursor: pointer;
   margin-bottom: 2px; border: 1px solid transparent;
   transition: all 0.12s; position: relative;
+  display: flex; flex-direction: column; gap: 4px;
 }
+.conv-top {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+}
+.conv-info { flex: 1; min-width: 0; }
+.conv-footer { display: flex; align-items: center; gap: 4px; padding-left: 38px; }
 .conv-item:hover { background: var(--bg-hover); }
 .conv-item.active { background: var(--bg-active); border-color: rgba(0,0,208,0.2); }
 .conv-item.has-new::after {
@@ -172,6 +178,9 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 700; flex-shrink: 0;
 }
+
+/* Text block next to avatar in conv-item */
+.conv-item-body { flex: 1; min-width: 0; }
 .av-wa    { background: #dcfce7; color: var(--wa-green); }
 .av-teams { background: #ede9fe; color: var(--purple); }
 .av-web   { background: #dbeafe; color: var(--electric); }
