@@ -223,7 +223,84 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
 .resize-handle:hover::after { background: rgba(0,0,208,0.5); }
 
 /* ── Chat area ───────────────────────────────────────────── */
-.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 320px; }
+.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── Multi-panel layout ──────────────────────────────────── */
+.chat-panels {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.chat-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-base);
+}
+.chat-panel:last-child { border-right: none; }
+
+/* Panel header — más compacto y adaptable */
+.chat-panel .chat-header {
+  padding: 7px 10px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.chat-panel .chat-header-left {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+.chat-panel .chat-user-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.chat-panel .chat-user-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  flex-wrap: nowrap;
+}
+/* Botones del panel — siempre compactos */
+.chat-panel .chat-header > div:last-child {
+  flex-shrink: 0;
+  gap: 4px;
+}
+.chat-panel .resolve-btn .btn-label,
+.chat-panel .action-btn .btn-label { display: inline; }
+
+/* Cuando el panel es estrecho (≤3 paneles abiertos empieza a apretar) */
+/* Ocultamos el texto "Resolver" y dejamos solo el icono + la X */
+@container (max-width: 320px) {
+  .chat-panel .resolve-btn .btn-label { display: none; }
+}
+
+/* Panel close btn */
+.panel-close-btn {
+  width: 24px; height: 24px; border-radius: 5px;
+  border: 1px solid var(--border-med);
+  background: var(--bg-card); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); transition: all 0.12s; flex-shrink: 0;
+}
+.panel-close-btn:hover { background: var(--magenta-dim); color: var(--magenta); border-color: rgba(255,49,132,0.25); }
+
+/* Cuando hay 3+ paneles, resolve-btn pierde el texto */
+.chat-panels:has(.chat-panel:nth-child(3)) .resolve-btn { padding: 4px 6px; }
+.chat-panels:has(.chat-panel:nth-child(3)) .resolve-btn .resolve-label { display: none; }
+
+/* Cuando hay 2+ paneles, reducir padding del header */
+.chat-panels:has(.chat-panel:nth-child(2)) .chat-header { padding: 6px 8px; }
+.chat-panels:has(.chat-panel:nth-child(2)) .chat-user-name { font-size: 12px; }
+.chat-panels:has(.chat-panel:nth-child(2)) .chat-user-sub { font-size: 10px; }
 
 .empty-state {
   flex: 1; display: flex; flex-direction: column;

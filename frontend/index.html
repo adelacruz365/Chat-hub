@@ -117,7 +117,6 @@
 
     <!-- ─── CHAT AREA ─────────────────────────────────────── -->
     <section class="chat-area" id="chatArea">
-
       <!-- Empty state -->
       <div class="empty-state" id="emptyState">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="44" height="44" opacity="0.2">
@@ -126,177 +125,33 @@
         <div class="empty-title">Selecciona una conversación</div>
         <div class="empty-sub">Elige una conversación de la cola para empezar</div>
       </div>
-
-      <!-- Multi-chat tabs bar -->
-      <div class="chat-tabs-bar" id="chatTabsBar" style="display:none">
-        <div class="chat-tabs-list" id="chatTabsList"></div>
-        <button class="chat-tab-add" title="Abrir nueva conversación" onclick="openNewChatTab()">
-          <svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6">
-            <path d="M7 1v12M1 7h12"/>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Chat view -->
-      <div class="chat-view" id="chatView" style="display:none">
-
-        <!-- Chat header -->
-        <div class="chat-header d-flex align-items-center justify-content-between gap-2">
-          <div class="chat-header-left d-flex align-items-center gap-2 flex-shrink-0">
-            <div class="conv-avatar av-web" id="chatAvatar">JM</div>
-            <div>
-              <div class="chat-user-name" id="chatUserName">Juan Martínez</div>
-              <div class="chat-user-sub d-flex align-items-center gap-1">
-                <span class="live-dot"></span>
-                En vivo · <span id="chatChannel">Web</span> · <span id="chatTopic">Soporte técnico</span>
-                <!-- Derivado badge -->
-                <span class="derived-badge" id="derivedBadge" style="display:none">
-                  <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M2 6h8M7 3l3 3-3 3"/>
-                  </svg>
-                  <span id="derivedAgentName">Carlos R.</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="chat-actions d-flex align-items-center flex-wrap gap-1">
-
-            <!-- Dropdown: Info cliente -->
-            <div class="dropdown-wrap" id="clientInfoWrap">
-              <button class="action-btn dropdown-trigger" id="clientInfoBtn">
-                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <circle cx="8" cy="5.5" r="2.5"/>
-                  <path d="M3 13c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
-                </svg>
-                Cliente
-                <svg class="chevron" viewBox="0 0 10 6" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M1 1l4 4 4-4"/>
-                </svg>
-              </button>
-              <div class="dropdown-panel" id="clientInfoPanel">
-                <div class="dp-section-title">Info del cliente</div>
-                <div class="dp-row"><span class="dp-label">Nombre</span><span class="dp-value" id="dpName">Juan Martínez</span></div>
-                <div class="dp-row"><span class="dp-label">Canal</span><span class="dp-value" id="dpChannel">Web</span></div>
-                <div class="dp-row"><span class="dp-label">Estado</span><span class="dp-value" id="dpStatus">Activo</span></div>
-                <div class="dp-row"><span class="dp-label">Inicio</span><span class="dp-value" id="dpStart">14:32</span></div>
-                <div class="dp-row"><span class="dp-label">Agente</span><span class="dp-value" id="dpAgent">Tú</span></div>
-                <div class="dp-divider"></div>
-                <div class="dp-section-title">Etiquetas</div>
-                <div class="dp-tags" id="dpTags">
-                  <span class="dp-tag">urgente</span>
-                  <span class="dp-tag">técnico</span>
-                </div>
-              </div>
-            </div>
-
-            <button class="action-btn transfer-btn" id="transferBtn" onclick="openTransferModal()">
-              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M2 8h12M9 3l5 5-5 5"/>
-              </svg>
-              Transferir
-            </button>
-
-            <!-- Notes button — nueva estética -->
-            <button class="action-btn notes-btn" id="notesBtn" onclick="toggleNotesPanel()">
-              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M9 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6L9 2z"/>
-                <path d="M9 2v4h4M6 9h4M6 11.5h2.5"/>
-              </svg>
-              Notas
-              <span class="notes-count" id="notesCount">3</span>
-            </button>
-
-            <button class="action-btn resolve-btn" id="resolveBtn" onclick="openResolveModal()">
-              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M2.5 8.5l3.5 3.5 7-7"/>
-              </svg>
-              Resolver
-            </button>
-          </div>
-        </div>
-
-        <!-- Messages -->
-        <div class="messages-area" id="messagesArea"></div>
-
-        <!-- Notes side panel -->
-        <div class="notes-panel" id="notesPanel" style="display:none">
-          <div class="notes-panel-header">
-            <span>Notas privadas</span>
-            <button class="notes-panel-close" onclick="toggleNotesPanel()">
-              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M3 3l10 10M13 3L3 13"/>
-              </svg>
-            </button>
-          </div>
-          <div class="notes-list" id="notesList">
-            <div class="note-item">
-              <div class="note-item-meta">Tú · hace 5 min</div>
-              <div class="note-item-text">Cliente reporta que el error ocurre solo en Chrome v120+, no en Firefox.</div>
-            </div>
-            <div class="note-item">
-              <div class="note-item-meta">Carlos R. · hace 12 min</div>
-              <div class="note-item-text">Ya se abrió ticket #4821 con el equipo de infraestructura.</div>
-            </div>
-            <div class="note-item">
-              <div class="note-item-meta">Tú · hace 20 min</div>
-              <div class="note-item-text">Primer contacto por WhatsApp, derivado a web por complejidad.</div>
-            </div>
-          </div>
-          <div class="notes-input-area">
-            <textarea class="notes-textarea" placeholder="Escribe una nota privada..." rows="2"></textarea>
-            <button class="notes-save-btn">Guardar nota</button>
-          </div>
-        </div>
-
-        <!-- Input area -->
-        <div class="input-area">
-          <div class="input-toolbar">
-            <button class="toolbar-btn">
-              <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
-                <path d="M7 1v12M1 7h12"/>
-              </svg>
-              Adjuntar
-            </button>
-            <button class="toolbar-btn">
-              <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
-                <circle cx="7" cy="7" r="5.5"/><path d="M7 4.5V7l1.5 1.5"/>
-              </svg>
-              Plantillas
-            </button>
-            <div class="dropdown-wrap toolbar-dropdown" id="quickRepliesWrap">
-              <button class="toolbar-btn dropdown-trigger" id="quickRepliesBtn">
-                <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
-                  <path d="M12 1H2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.5l1.5 2.5 1.5-2.5H12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
-                </svg>
-                Respuestas
-                <svg class="chevron" viewBox="0 0 10 6" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M1 1l4 4 4-4"/>
-                </svg>
-              </button>
-              <div class="dropdown-panel dp-qr toolbar-qr-panel" id="quickRepliesPanel">
-                <div class="dp-section-title">Respuestas rápidas</div>
-                <div class="dp-qr-search-wrap">
-                  <input class="dp-qr-search" id="dpQRSearch" placeholder="Filtrar respuestas...">
-                </div>
-                <div class="dp-qr-list" id="dpQRList"></div>
-              </div>
-            </div>
-          </div>
-          <div style="display:none">
-            <input id="botTestInput"><button id="botTestBtn"></button>
-            <div id="botTestResult"></div>
-            <div id="botTestWrap"><button id="botTestDropBtn"></button></div>
-          </div>
-          <div class="input-row d-flex align-items-end gap-2">
-            <textarea class="msg-input" id="msgInput" placeholder="Escribe un mensaje al cliente..." rows="1"></textarea>
-            <button class="send-btn" id="sendBtn" aria-label="Enviar">
-              <svg viewBox="0 0 24 24" fill="white" width="14" height="14">
-                <path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
+      <!-- Multi-chat panels container -->
+      <div class="chat-panels" id="chatPanels" style="display:none"></div>
+      <!-- Hidden compat elements for JS -->
+      <div style="display:none">
+        <input id="botTestInput"><button id="botTestBtn"></button>
+        <div id="botTestResult"></div>
+        <div id="botTestWrap"><button id="botTestDropBtn"></button></div>
+        <div id="quickRepliesPanel"><input id="dpQRSearch"><div id="dpQRList"></div></div>
+        <div id="notesPanel"></div>
+        <span id="notesCount"></span>
+        <div id="chatTabsBar"><div id="chatTabsList"></div></div>
+        <div id="chatView"></div>
+        <div id="messagesArea"></div>
+        <div id="chatAvatar"></div>
+        <span id="chatUserName"></span>
+        <span id="chatChannel"></span>
+        <span id="chatTopic"></span>
+        <span id="derivedBadge"><span id="derivedAgentName"></span></span>
+        <textarea id="msgInput"></textarea>
+        <button id="sendBtn"></button>
+        <button id="transferBtn"></button>
+        <button id="resolveBtn"></button>
+        <button id="notesBtn"></button>
+        <div id="clientInfoPanel"></div>
+        <span id="dpName"></span><span id="dpChannel"></span>
+        <span id="dpStatus"></span><span id="dpStart"></span>
+        <span id="dpAgent"></span><div id="dpTags"></div>
       </div>
     </section>
 
@@ -759,7 +614,7 @@ function openConvFromZone(id) {
   closePrivateZone();
 }
 
-// ── Multi-tab demo ───────────────────────────────────────────
+// ── Multi-panel demo ─────────────────────────────────────────
 const DEMO_CONVS = [
   { id: 'conv1', name: 'Juan Martínez',  av: 'JM', avClass: 'av-web',   channel: 'web',      status: 'active',  topic: 'Error en login',   derived: null },
   { id: 'conv2', name: 'Lucía García',   av: 'LG', avClass: 'av-wa',    channel: 'whatsapp', status: 'pending', topic: 'Facturación',      derived: 'Ana P.' },
@@ -773,13 +628,13 @@ const STATUS_CLASS  = { pending: 'badge-pending', active: 'badge-active', waitin
 const CHANNEL_LABEL = { whatsapp: 'WhatsApp', teams: 'Teams', web: 'Web Chat' };
 const CHANNEL_CLASS = { whatsapp: 'ch-badge-wa', teams: 'ch-badge-teams', web: 'ch-badge-web' };
 
-let openTabs = [];
-let activeTab = null;
+const MAX_PANELS = 4;
+let openPanels = []; // array of convId strings
 
 function renderConvList() {
   const list = document.getElementById('convList');
   list.innerHTML = DEMO_CONVS.map(c => `
-    <div class="conv-item ${openTabs.includes(c.id) ? 'has-new' : ''}" onclick="openChatTab('${c.id}')">
+    <div class="conv-item ${openPanels.includes(c.id) ? 'active' : ''}" onclick="openChatPanel('${c.id}')">
       <div class="conv-top">
         <div class="conv-avatar ${c.avClass}">${c.av}</div>
         <div class="conv-info">
@@ -800,68 +655,131 @@ function renderConvList() {
   `).join('');
 }
 
-function openChatTab(convId) {
+function openChatPanel(convId) {
+  if (openPanels.includes(convId)) return; // ya abierto
+  if (openPanels.length >= MAX_PANELS) return; // máximo 4
   const conv = DEMO_CONVS.find(c => c.id === convId);
   if (!conv) return;
 
-  if (!openTabs.includes(convId)) {
-    openTabs.push(convId);
-  }
-  activeTab = convId;
-  renderTabs();
-  loadConvView(conv);
-
+  openPanels.push(convId);
   document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('chatView').style.display = 'flex';
-  document.getElementById('chatTabsBar').style.display = 'flex';
+  document.getElementById('chatPanels').style.display = 'flex';
+  renderPanels();
+  renderConvList();
 }
 
-function renderTabs() {
-  const tabsList = document.getElementById('chatTabsList');
-  tabsList.innerHTML = openTabs.map(id => {
-    const c = DEMO_CONVS.find(x => x.id === id);
+function closeChatPanel(convId) {
+  openPanels = openPanels.filter(id => id !== convId);
+  if (openPanels.length === 0) {
+    document.getElementById('chatPanels').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'flex';
+  } else {
+    renderPanels();
+  }
+  renderConvList();
+}
+
+function renderPanels() {
+  const container = document.getElementById('chatPanels');
+  container.innerHTML = openPanels.map(convId => {
+    const conv = DEMO_CONVS.find(c => c.id === convId);
+    const msgs = (DEMO_MESSAGES[convId] || []).map(m => {
+      const avLabel = m.role === 'agent' ? 'Tú' : conv.av;
+      const avClass = m.role === 'agent' ? 'av-agent' : 'av-user';
+      return `<div class="msg-row ${m.role}">
+        <div class="msg-avatar ${avClass}">${avLabel}</div>
+        <div><div class="msg-bubble">${escHtml(m.text)}</div>
+        <div class="msg-meta">${m.role === 'agent' ? 'Tú' : conv.name} · ahora</div></div>
+      </div>`;
+    }).join('');
+
+    const derivedHtml = conv.derived
+      ? `<span class="derived-badge" style="display:inline-flex">
+           <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+           ${escHtml(conv.derived)}
+         </span>`
+      : '';
+
     return `
-      <div class="chat-tab ${id === activeTab ? 'active' : ''}" onclick="switchTab('${id}')">
-        <div class="chat-tab-av ${c.avClass}">${c.av}</div>
-        <span class="chat-tab-name">${c.name.split(' ')[0]}</span>
-        ${c.derived ? `<svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.6" style="opacity:0.6"><path d="M2 5h6M6 2.5l3 2.5-3 2.5"/></svg>` : ''}
-        <button class="chat-tab-close" onclick="event.stopPropagation();closeTab('${id}')">
-          <svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.6">
-            <path d="M2 2l6 6M8 2l-6 6"/>
-          </svg>
-        </button>
+    <div class="chat-panel" id="panel-${convId}">
+      <div class="chat-header d-flex align-items-center justify-content-between gap-2">
+        <div class="chat-header-left d-flex align-items-center gap-2 flex-shrink-0">
+          <div class="conv-avatar ${conv.avClass}">${conv.av}</div>
+          <div>
+            <div class="chat-user-name">${escHtml(conv.name)}</div>
+            <div class="chat-user-sub d-flex align-items-center gap-1">
+              <span class="live-dot"></span>
+              En vivo · ${escHtml(CHANNEL_LABEL[conv.channel])} · ${escHtml(conv.topic)}
+              ${derivedHtml}
+            </div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+          <button class="action-btn resolve-btn" onclick="closeChatPanel('${convId}')">
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M2.5 8.5l3.5 3.5 7-7"/>
+            </svg>
+            <span class="resolve-label">Resolver</span>
+          </button>
+          <button class="panel-close-btn" title="Cerrar panel" onclick="closeChatPanel('${convId}')">
+            <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M2 2l10 10M12 2L2 12"/>
+            </svg>
+          </button>
+        </div>
       </div>
-    `;
+      <div class="messages-area">${msgs}</div>
+      <div class="input-area">
+        <div class="input-toolbar">
+          <button class="toolbar-btn">
+            <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 1v12M1 7h12"/></svg>
+            Adjuntar
+          </button>
+          <button class="toolbar-btn">
+            <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5.5"/><path d="M7 4.5V7l1.5 1.5"/></svg>
+            Plantillas
+          </button>
+        </div>
+        <div class="input-row d-flex align-items-end gap-2">
+          <textarea class="msg-input" placeholder="Escribe un mensaje..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPanelMsg(this,'${convId}')}"></textarea>
+          <button class="send-btn" onclick="sendPanelMsg(this.previousElementSibling,'${convId}')">
+            <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
   }).join('');
 }
 
-function switchTab(id) {
-  activeTab = id;
-  const conv = DEMO_CONVS.find(c => c.id === id);
-  loadConvView(conv);
-  renderTabs();
+function sendPanelMsg(textarea, convId) {
+  const text = textarea.value.trim();
+  if (!text) return;
+  textarea.value = '';
+  const panel = document.getElementById('panel-' + convId);
+  if (!panel) return;
+  const area = panel.querySelector('.messages-area');
+  const row = document.createElement('div');
+  row.className = 'msg-row agent';
+  row.innerHTML = `<div class="msg-avatar av-agent">Tú</div>
+    <div><div class="msg-bubble">${escHtml(text)}</div>
+    <div class="msg-meta">Tú · ahora</div></div>`;
+  area.appendChild(row);
+  area.scrollTop = area.scrollHeight;
 }
 
-function closeTab(id) {
-  openTabs = openTabs.filter(t => t !== id);
-  if (activeTab === id) {
-    activeTab = openTabs[openTabs.length - 1] || null;
-  }
-  if (openTabs.length === 0) {
-    document.getElementById('chatTabsBar').style.display = 'none';
-    document.getElementById('chatView').style.display = 'none';
-    document.getElementById('emptyState').style.display = 'flex';
-  } else {
-    const conv = DEMO_CONVS.find(c => c.id === activeTab);
-    loadConvView(conv);
-    renderTabs();
-  }
-}
-
+// compat shims — funciones que el app.js puede llamar
+function openChatTab(id) { openChatPanel(id); }
+function closeTab(id) { closeChatPanel(id); }
+function switchTab(id) {}
 function openNewChatTab() {
-  const unopen = DEMO_CONVS.filter(c => !openTabs.includes(c.id));
-  if (unopen.length > 0) openChatTab(unopen[0].id);
+  const unopen = DEMO_CONVS.filter(c => !openPanels.includes(c.id));
+  if (unopen.length > 0) openChatPanel(unopen[0].id);
 }
+function loadConvView(conv) {}
+function toggleNotesPanel() {}
+function openTransferModal() {}
+function openResolveModal() {}
 
 const DEMO_MESSAGES = {
   conv1: [
