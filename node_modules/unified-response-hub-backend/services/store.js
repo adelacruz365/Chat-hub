@@ -86,7 +86,7 @@ function seedDemoData() {
       channel: 'whatsapp',
       status: 'waiting',
       userId: 'wa-34698765432',
-      userName: 'Pedro Sánchez R.',
+      userName: 'Unai Martinez',
       userPhone: '+34 698 765 432',
       topic: 'Reseteo de contraseña',
       tags: ['Contraseña', 'Acceso', 'Urgente'],
