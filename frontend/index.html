@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
 </head>
@@ -29,11 +28,11 @@
     <div class="header-stats d-flex align-items-center gap-3 flex-shrink-0">
       <div class="stat-item d-flex align-items-center gap-1">
         <span class="stat-dot green"></span>
-        Activas: <strong id="stat-active">0</strong>
+        Activas: <strong id="stat-active">3</strong>
       </div>
       <div class="stat-item d-flex align-items-center gap-1">
         <span class="stat-dot amber"></span>
-        Pendientes: <strong id="stat-pending">0</strong>
+        Pendientes: <strong id="stat-pending">2</strong>
       </div>
       <div class="stat-item d-flex align-items-center gap-1">
         <span class="stat-dot blue-dot"></span>
@@ -41,14 +40,32 @@
       </div>
       <div class="stat-item d-flex align-items-center gap-1">
         <span class="stat-dot teal"></span>
-        Resueltas hoy: <strong id="stat-resolved">0</strong>
+        Resueltas hoy: <strong id="stat-resolved">7</strong>
       </div>
-      <div class="ws-status d-flex align-items-center" id="wsStatus" title="Estado conexión">
+      <div class="ws-status connected d-flex align-items-center" id="wsStatus" title="Conectado">
         <span class="ws-dot"></span>
       </div>
 
+      <!-- Botón Chat Interno Técnicos -->
+      <button class="hdr-btn" id="techChatBtn" title="Chat interno técnicos · Alt+T">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+        </svg>
+        <span>Técnicos</span>
+        <span class="hdr-badge" id="techChatBadge" style="display:none">2</span>
+      </button>
+
+      <!-- Botón Zona Privada -->
+      <button class="hdr-btn" id="privateZoneBtn" title="Zona privada · mis usuarios asignados">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="7" width="10" height="8" rx="1.5"/>
+          <path d="M5 7V5a3 3 0 0 1 6 0v2"/>
+        </svg>
+        <span>Mi zona</span>
+      </button>
+
       <!-- Botón buscador -->
-      <button class="hdr-btn" id="searchToggleBtn" title="Buscar información · Alt+S">
+      <button class="hdr-btn" id="searchToggleBtn" title="Buscar · Alt+S">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="6.5" cy="6.5" r="5"/><path d="m10.5 10.5 3.5 3.5"/>
         </svg>
@@ -74,7 +91,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header d-flex align-items-center justify-content-between px-3 pt-2 pb-1">
         <div class="sidebar-title">Conversaciones</div>
-        <div class="sidebar-count" id="queueCount">0</div>
+        <div class="sidebar-count" id="queueCount">5</div>
       </div>
 
       <div class="search-wrap">
@@ -92,11 +109,10 @@
       </div>
 
       <div class="conv-list" id="convList">
-        <div class="loading-state">Cargando conversaciones...</div>
+        <!-- Conversations rendered by JS demo -->
       </div>
     </aside>
 
-    <!-- Resize handle sidebar ↔ chat -->
     <div class="resize-handle" id="resizeLeft"></div>
 
     <!-- ─── CHAT AREA ─────────────────────────────────────── -->
@@ -111,18 +127,35 @@
         <div class="empty-sub">Elige una conversación de la cola para empezar</div>
       </div>
 
+      <!-- Multi-chat tabs bar -->
+      <div class="chat-tabs-bar" id="chatTabsBar" style="display:none">
+        <div class="chat-tabs-list" id="chatTabsList"></div>
+        <button class="chat-tab-add" title="Abrir nueva conversación" onclick="openNewChatTab()">
+          <svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M7 1v12M1 7h12"/>
+          </svg>
+        </button>
+      </div>
+
       <!-- Chat view -->
       <div class="chat-view" id="chatView" style="display:none">
 
         <!-- Chat header -->
         <div class="chat-header d-flex align-items-center justify-content-between gap-2">
           <div class="chat-header-left d-flex align-items-center gap-2 flex-shrink-0">
-            <div class="conv-avatar" id="chatAvatar"></div>
+            <div class="conv-avatar av-web" id="chatAvatar">JM</div>
             <div>
-              <div class="chat-user-name" id="chatUserName"></div>
+              <div class="chat-user-name" id="chatUserName">Juan Martínez</div>
               <div class="chat-user-sub d-flex align-items-center gap-1">
                 <span class="live-dot"></span>
-                En vivo · <span id="chatChannel"></span> · <span id="chatTopic"></span>
+                En vivo · <span id="chatChannel">Web</span> · <span id="chatTopic">Soporte técnico</span>
+                <!-- Derivado badge -->
+                <span class="derived-badge" id="derivedBadge" style="display:none">
+                  <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M2 6h8M7 3l3 3-3 3"/>
+                  </svg>
+                  <span id="derivedAgentName">Carlos R.</span>
+                </span>
               </div>
             </div>
           </div>
@@ -143,30 +176,38 @@
               </button>
               <div class="dropdown-panel" id="clientInfoPanel">
                 <div class="dp-section-title">Info del cliente</div>
-                <div class="dp-row"><span class="dp-label">Nombre</span><span class="dp-value" id="dpName">—</span></div>
-                <div class="dp-row"><span class="dp-label">Canal</span><span class="dp-value" id="dpChannel">—</span></div>
-                <div class="dp-row"><span class="dp-label">Estado</span><span class="dp-value" id="dpStatus">—</span></div>
-                <div class="dp-row"><span class="dp-label">Inicio</span><span class="dp-value" id="dpStart">—</span></div>
-                <div class="dp-row"><span class="dp-label">Agente</span><span class="dp-value" id="dpAgent">—</span></div>
+                <div class="dp-row"><span class="dp-label">Nombre</span><span class="dp-value" id="dpName">Juan Martínez</span></div>
+                <div class="dp-row"><span class="dp-label">Canal</span><span class="dp-value" id="dpChannel">Web</span></div>
+                <div class="dp-row"><span class="dp-label">Estado</span><span class="dp-value" id="dpStatus">Activo</span></div>
+                <div class="dp-row"><span class="dp-label">Inicio</span><span class="dp-value" id="dpStart">14:32</span></div>
+                <div class="dp-row"><span class="dp-label">Agente</span><span class="dp-value" id="dpAgent">Tú</span></div>
                 <div class="dp-divider"></div>
                 <div class="dp-section-title">Etiquetas</div>
-                <div class="dp-tags" id="dpTags"><span style="font-size:11px;color:var(--text-3)">Sin etiquetas</span></div>
+                <div class="dp-tags" id="dpTags">
+                  <span class="dp-tag">urgente</span>
+                  <span class="dp-tag">técnico</span>
+                </div>
               </div>
             </div>
 
-            <button class="action-btn transfer-btn" id="transferBtn">
+            <button class="action-btn transfer-btn" id="transferBtn" onclick="openTransferModal()">
               <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M2 8h12M9 3l5 5-5 5"/>
               </svg>
               Transferir
             </button>
-            <button class="action-btn notes-btn" id="notesBtn">
+
+            <!-- Notes button — nueva estética -->
+            <button class="action-btn notes-btn" id="notesBtn" onclick="toggleNotesPanel()">
               <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h4"/>
+                <path d="M9 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6L9 2z"/>
+                <path d="M9 2v4h4M6 9h4M6 11.5h2.5"/>
               </svg>
               Notas
+              <span class="notes-count" id="notesCount">3</span>
             </button>
-            <button class="action-btn resolve-btn" id="resolveBtn">
+
+            <button class="action-btn resolve-btn" id="resolveBtn" onclick="openResolveModal()">
               <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M2.5 8.5l3.5 3.5 7-7"/>
               </svg>
@@ -177,6 +218,36 @@
 
         <!-- Messages -->
         <div class="messages-area" id="messagesArea"></div>
+
+        <!-- Notes side panel -->
+        <div class="notes-panel" id="notesPanel" style="display:none">
+          <div class="notes-panel-header">
+            <span>Notas privadas</span>
+            <button class="notes-panel-close" onclick="toggleNotesPanel()">
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M3 3l10 10M13 3L3 13"/>
+              </svg>
+            </button>
+          </div>
+          <div class="notes-list" id="notesList">
+            <div class="note-item">
+              <div class="note-item-meta">Tú · hace 5 min</div>
+              <div class="note-item-text">Cliente reporta que el error ocurre solo en Chrome v120+, no en Firefox.</div>
+            </div>
+            <div class="note-item">
+              <div class="note-item-meta">Carlos R. · hace 12 min</div>
+              <div class="note-item-text">Ya se abrió ticket #4821 con el equipo de infraestructura.</div>
+            </div>
+            <div class="note-item">
+              <div class="note-item-meta">Tú · hace 20 min</div>
+              <div class="note-item-text">Primer contacto por WhatsApp, derivado a web por complejidad.</div>
+            </div>
+          </div>
+          <div class="notes-input-area">
+            <textarea class="notes-textarea" placeholder="Escribe una nota privada..." rows="2"></textarea>
+            <button class="notes-save-btn">Guardar nota</button>
+          </div>
+        </div>
 
         <!-- Input area -->
         <div class="input-area">
@@ -193,8 +264,6 @@
               </svg>
               Plantillas
             </button>
-
-            <!-- Respuestas rápidas en toolbar -->
             <div class="dropdown-wrap toolbar-dropdown" id="quickRepliesWrap">
               <button class="toolbar-btn dropdown-trigger" id="quickRepliesBtn">
                 <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -214,19 +283,13 @@
               </div>
             </div>
           </div>
-          <!-- Hidden bot elements for JS compatibility -->
           <div style="display:none">
             <input id="botTestInput"><button id="botTestBtn"></button>
             <div id="botTestResult"></div>
             <div id="botTestWrap"><button id="botTestDropBtn"></button></div>
           </div>
           <div class="input-row d-flex align-items-end gap-2">
-            <textarea
-              class="msg-input"
-              id="msgInput"
-              placeholder="Escribe un mensaje al cliente..."
-              rows="1"
-            ></textarea>
+            <textarea class="msg-input" id="msgInput" placeholder="Escribe un mensaje al cliente..." rows="1"></textarea>
             <button class="send-btn" id="sendBtn" aria-label="Enviar">
               <svg viewBox="0 0 24 24" fill="white" width="14" height="14">
                 <path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/>
@@ -237,7 +300,6 @@
       </div>
     </section>
 
-    <!-- Resize handle chat ↔ assistant -->
     <div class="resize-handle" id="resizeRight"></div>
 
     <!-- ─── ASISTENTE COLUMN ──────────────────────────────────── -->
@@ -252,7 +314,6 @@
           Asistente Técnico
           <span class="sp-badge">INTERNO</span>
         </div>
-        <!-- hidden close btn for JS compat -->
         <button class="sp-close-btn" id="kbCloseBtn" style="display:none"></button>
       </div>
       <div class="kb-shortcuts">
@@ -288,7 +349,7 @@
   </div><!-- /main -->
 </div><!-- /app -->
 
-<!-- ═══ TOAST container ══════════════════════════════════════ -->
+<!-- ═══ TOAST ═══════════════════════════════════════════════ -->
 <div id="toastContainer"></div>
 
 <!-- ═══ SEARCH PANEL ════════════════════════════════════════ -->
@@ -307,8 +368,6 @@
       </svg>
     </button>
   </div>
-
-  <!-- Big search bar -->
   <div class="sp-search-area">
     <div class="sp-search-bar">
       <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" class="sp-search-icon">
@@ -319,15 +378,12 @@
     </div>
     <div class="sp-categories">
       <span class="sp-cat-label">Acceso rápido:</span>
-      <button class="sp-cat" data-q="documentación API integración">API docs</button>
-      <button class="sp-cat" data-q="códigos de error comunes">Errores</button>
-      <button class="sp-cat" data-q="procedimientos de escalado">Escalado</button>
-      <button class="sp-cat" data-q="política GDPR privacidad">GDPR</button>
-      <button class="sp-cat" data-q="Microsoft Teams Graph API">Teams</button>
-      <button class="sp-cat" data-q="WhatsApp Business API configuración">WA API</button>
+      <button class="sp-cat">API docs</button>
+      <button class="sp-cat">Errores</button>
+      <button class="sp-cat">Escalado</button>
+      <button class="sp-cat">GDPR</button>
     </div>
   </div>
-
   <div class="sp-results" id="spResults">
     <div class="sp-empty-state">
       <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1" opacity="0.2">
@@ -338,32 +394,537 @@
   </div>
 </div>
 
-<!-- Transfer modal — usando modal de Bootstrap -->
-<div class="modal-backdrop" id="transferModal" style="display:none">
-  <div class="modal" style="position:static;display:block">
-    <div class="modal-header px-3 py-2">
-      <h6 class="modal-title fw-semibold mb-0" style="font-size:13px">Transferir conversación</h6>
+<!-- ═══ TRANSFER POPUP (white, light) ═══════════════════════ -->
+<div class="overlay" id="transferOverlay" style="display:none" onclick="closeTransferModal()"></div>
+<div class="transfer-popup" id="transferPopup" style="display:none">
+  <div class="transfer-popup-header">
+    <div class="transfer-popup-title">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M2 8h12M9 3l5 5-5 5"/>
+      </svg>
+      Transferir conversación
     </div>
-    <div class="modal-body px-3 py-3">
-      <label class="modal-label">Transferir a:</label>
-      <select id="transferTarget" class="modal-select">
-        <option value="queue">Cola general</option>
-        <option value="sales">Sales</option>
-        <option value="tech">Soporte Técnico</option>
-        <option value="billing">Facturación</option>
-      </select>
-      <label class="modal-label mt-3">Motivo (opcional):</label>
-      <textarea id="transferNote" class="modal-textarea" placeholder="Añade una nota para el próximo agente..."></textarea>
-    </div>
-    <div class="modal-footer px-3 py-2 d-flex justify-content-end gap-2">
-      <button class="action-btn" id="cancelTransfer">Cancelar</button>
-      <button class="action-btn resolve-btn" id="confirmTransfer">Transferir</button>
+    <button class="transfer-popup-close" onclick="closeTransferModal()">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 3l10 10M13 3L3 13"/>
+      </svg>
+    </button>
+  </div>
+  <div class="transfer-popup-body">
+    <div class="transfer-layout">
+      <!-- Column left: agent list -->
+      <div class="transfer-agents-col">
+        <div class="transfer-col-title">Agentes disponibles</div>
+        <div class="transfer-agents-list" id="transferAgentsList">
+          <!-- agents rendered by JS -->
+        </div>
+      </div>
+      <!-- Column right: form -->
+      <div class="transfer-form-col">
+        <div class="transfer-col-title">Destino de transferencia</div>
+
+        <label class="transfer-label">Transferir a:</label>
+        <div class="transfer-target-display" id="transferTargetDisplay">
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="5.5" r="2.5"/>
+            <path d="M3 13c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+          </svg>
+          <span id="transferTargetName">Selecciona un agente o cola</span>
+        </div>
+
+        <label class="transfer-label mt-3">O transferir a cola:</label>
+        <select class="transfer-select" id="transferQueueSelect">
+          <option value="">— Seleccionar cola —</option>
+          <option value="queue">Cola general</option>
+          <option value="sales">Sales</option>
+          <option value="tech">Soporte Técnico</option>
+          <option value="billing">Facturación</option>
+        </select>
+
+        <label class="transfer-label mt-3">Nota para el receptor (opcional):</label>
+        <textarea class="transfer-textarea" id="transferNote" placeholder="Añade contexto para el próximo agente..."></textarea>
+
+        <div class="transfer-footer">
+          <button class="transfer-cancel-btn" onclick="closeTransferModal()">Cancelar</button>
+          <button class="transfer-confirm-btn" id="confirmTransfer">
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M2 8h12M9 3l5 5-5 5"/>
+            </svg>
+            Transferir
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Bootstrap 5 JS -->
+<!-- ═══ RESOLVE POPUP ═══════════════════════════════════════ -->
+<div class="overlay" id="resolveOverlay" style="display:none" onclick="closeResolveModal()"></div>
+<div class="resolve-popup" id="resolvePopup" style="display:none">
+  <div class="resolve-popup-icon">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <path d="m9 11 3 3L22 4"/>
+    </svg>
+  </div>
+  <div class="resolve-popup-title">¿Resolver incidencia?</div>
+  <div class="resolve-popup-sub">La conversación se marcará como resuelta y se cerrará el ticket activo.</div>
+
+  <div class="resolve-conv-info" id="resolveConvInfo">
+    <div class="resolve-conv-name" id="resolveConvName">Juan Martínez</div>
+    <div class="resolve-conv-meta" id="resolveConvMeta">Web · Soporte técnico · 23 min</div>
+  </div>
+
+  <div class="resolve-rating">
+    <div class="resolve-rating-label">Motivo de resolución:</div>
+    <div class="resolve-reasons">
+      <button class="resolve-reason active" data-reason="solved">✅ Problema resuelto</button>
+      <button class="resolve-reason" data-reason="noresponse">⏱ Sin respuesta del cliente</button>
+      <button class="resolve-reason" data-reason="spam">🚫 Spam / error</button>
+      <button class="resolve-reason" data-reason="escalated">📤 Escalado a otro dpto.</button>
+    </div>
+  </div>
+
+  <div class="resolve-popup-actions">
+    <button class="resolve-cancel-btn" onclick="closeResolveModal()">Cancelar</button>
+    <button class="resolve-confirm-btn" onclick="confirmResolve()">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="white" stroke-width="1.8">
+        <path d="M2.5 8.5l3.5 3.5 7-7"/>
+      </svg>
+      Marcar como resuelto
+    </button>
+  </div>
+</div>
+
+<!-- ═══ TECH CHAT PANEL ══════════════════════════════════════ -->
+<div class="tech-chat-panel" id="techChatPanel" style="display:none">
+  <div class="tech-chat-header">
+    <div class="tech-chat-title">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+      </svg>
+      Chat Técnicos
+      <span class="sp-badge">PRIVADO</span>
+    </div>
+    <button class="sp-close-btn" onclick="closeTechChat()">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 3l10 10M13 3L3 13"/>
+      </svg>
+    </button>
+  </div>
+  <div class="tech-chat-online">
+    <span class="tech-online-dot"></span>
+    <span id="techOnlineCount">4 técnicos en línea</span>
+  </div>
+  <div class="tech-chat-messages" id="techChatMessages">
+    <div class="tech-msg tech-msg-other">
+      <div class="tech-msg-av" style="background:#ede9fe;color:#7c3aed">CR</div>
+      <div class="tech-msg-body">
+        <div class="tech-msg-name">Carlos R.</div>
+        <div class="tech-msg-bubble">¿Alguien tiene acceso al servidor de prod para revisar los logs del error 502?</div>
+        <div class="tech-msg-time">14:28</div>
+      </div>
+    </div>
+    <div class="tech-msg tech-msg-other">
+      <div class="tech-msg-av" style="background:#fef3c7;color:#92400e">AP</div>
+      <div class="tech-msg-body">
+        <div class="tech-msg-name">Ana P.</div>
+        <div class="tech-msg-bubble">Sí, lo reviso ahora. Dame 2 minutos.</div>
+        <div class="tech-msg-time">14:29</div>
+      </div>
+    </div>
+    <div class="tech-msg tech-msg-mine">
+      <div class="tech-msg-body">
+        <div class="tech-msg-bubble mine">Ya está escalado el ticket #4821, acabo de notificar a infra.</div>
+        <div class="tech-msg-time">14:31</div>
+      </div>
+    </div>
+  </div>
+  <div class="tech-chat-input-area">
+    <input class="tech-chat-input" id="techChatInput" placeholder="Mensaje al equipo técnico...">
+    <button class="tech-chat-send" onclick="sendTechMsg()">
+      <svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ═══ PRIVATE ZONE PANEL ══════════════════════════════════ -->
+<div class="overlay" id="privateZoneOverlay" style="display:none" onclick="closePrivateZone()"></div>
+<div class="private-zone-panel" id="privateZonePanel" style="display:none">
+  <div class="pz-header">
+    <div class="pz-title">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="7" width="10" height="8" rx="1.5"/>
+        <path d="M5 7V5a3 3 0 0 1 6 0v2"/>
+      </svg>
+      Mi zona privada
+    </div>
+    <button class="sp-close-btn" onclick="closePrivateZone()">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 3l10 10M13 3L3 13"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="pz-agent-card">
+    <div class="pz-agent-av">TÚ</div>
+    <div class="pz-agent-info">
+      <div class="pz-agent-name">Agente actual</div>
+      <div class="pz-agent-status"><span class="live-dot"></span> Disponible · 3 asignados</div>
+    </div>
+  </div>
+
+  <div class="pz-section-title">Usuarios asignados a mí</div>
+  <div class="pz-assigned-list" id="pzAssignedList">
+    <div class="pz-user-row" onclick="openConvFromZone('conv1')">
+      <div class="conv-avatar av-web" style="width:28px;height:28px;font-size:9px">JM</div>
+      <div class="pz-user-info">
+        <div class="pz-user-name">Juan Martínez <span class="pz-channel-badge">Web</span></div>
+        <div class="pz-user-last">Último msg: hace 2 min · Activo</div>
+      </div>
+      <svg class="pz-arrow" viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M2 5h6M6 2.5l3 2.5-3 2.5"/>
+      </svg>
+    </div>
+    <div class="pz-user-row" onclick="openConvFromZone('conv2')">
+      <div class="conv-avatar av-wa" style="width:28px;height:28px;font-size:9px">LG</div>
+      <div class="pz-user-info">
+        <div class="pz-user-name">Lucía García <span class="pz-channel-badge pz-channel-wa">WA</span></div>
+        <div class="pz-user-last">Último msg: hace 8 min · Esperando</div>
+      </div>
+      <svg class="pz-arrow" viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M2 5h6M6 2.5l3 2.5-3 2.5"/>
+      </svg>
+    </div>
+    <div class="pz-user-row" onclick="openConvFromZone('conv3')">
+      <div class="conv-avatar av-teams" style="width:28px;height:28px;font-size:9px">MR</div>
+      <div class="pz-user-info">
+        <div class="pz-user-name">Mario Ruiz <span class="pz-channel-badge pz-channel-teams">Teams</span></div>
+        <div class="pz-user-last">Último msg: hace 15 min · Activo</div>
+      </div>
+      <svg class="pz-arrow" viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M2 5h6M6 2.5l3 2.5-3 2.5"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/app.js"></script>
+<script src="app.js"></script>
+<script>
+// ── Demo / UI interactions for new features ─────────────────
+
+const AGENTS = [
+  { id: 'a1', name: 'Carlos Rodríguez', initials: 'CR', color: '#7c3aed', bg: '#ede9fe', dept: 'Técnico N2', available: true },
+  { id: 'a2', name: 'Ana Pereira',       initials: 'AP', color: '#92400e', bg: '#fef3c7', dept: 'Soporte',    available: true },
+  { id: 'a3', name: 'Diego Morales',     initials: 'DM', color: '#15803d', bg: '#dcfce7', dept: 'Billing',    available: true },
+  { id: 'a4', name: 'Sofía Vidal',       initials: 'SV', color: '#0369a1', bg: '#e0f2fe', dept: 'Sales',      available: false },
+  { id: 'a5', name: 'Tomás Herrera',     initials: 'TH', color: '#9d174d', bg: '#fce7f3', dept: 'Técnico N1', available: true },
+];
+
+let selectedTransferAgent = null;
+
+// Render transfer agent list
+function renderTransferAgents() {
+  const list = document.getElementById('transferAgentsList');
+  list.innerHTML = AGENTS.filter(a => a.available).map(a => `
+    <div class="transfer-agent-item" data-id="${a.id}" onclick="selectTransferAgent('${a.id}')">
+      <div class="transfer-agent-av" style="background:${a.bg};color:${a.color}">${a.initials}</div>
+      <div class="transfer-agent-info">
+        <div class="transfer-agent-name">${a.name}</div>
+        <div class="transfer-agent-dept">${a.dept}</div>
+      </div>
+      <span class="transfer-agent-status available">●</span>
+    </div>
+  `).join('');
+}
+
+function selectTransferAgent(id) {
+  selectedTransferAgent = id;
+  const agent = AGENTS.find(a => a.id === id);
+  document.getElementById('transferTargetName').textContent = agent.name;
+  document.getElementById('transferQueueSelect').value = '';
+  document.querySelectorAll('.transfer-agent-item').forEach(el => el.classList.remove('selected'));
+  document.querySelector(`.transfer-agent-item[data-id="${id}"]`).classList.add('selected');
+}
+
+function openTransferModal() {
+  renderTransferAgents();
+  selectedTransferAgent = null;
+  document.getElementById('transferTargetName').textContent = 'Selecciona un agente o cola';
+  document.getElementById('transferNote').value = '';
+  document.getElementById('transferQueueSelect').value = '';
+  document.querySelectorAll('.transfer-agent-item').forEach(el => el.classList.remove('selected'));
+  document.getElementById('transferOverlay').style.display = 'block';
+  document.getElementById('transferPopup').style.display = 'flex';
+  requestAnimationFrame(() => document.getElementById('transferPopup').classList.add('open'));
+}
+
+function closeTransferModal() {
+  document.getElementById('transferPopup').classList.remove('open');
+  setTimeout(() => {
+    document.getElementById('transferOverlay').style.display = 'none';
+    document.getElementById('transferPopup').style.display = 'none';
+  }, 200);
+}
+
+document.getElementById('confirmTransfer').addEventListener('click', () => {
+  const agent = AGENTS.find(a => a.id === selectedTransferAgent);
+  const queue = document.getElementById('transferQueueSelect').value;
+  const dest = agent ? agent.name : (queue || null);
+  if (!dest) { alert('Selecciona un agente o una cola'); return; }
+  closeTransferModal();
+  // Show derived badge
+  document.getElementById('derivedBadge').style.display = 'inline-flex';
+  document.getElementById('derivedAgentName').textContent = dest;
+  showToast(`Conversación transferida a ${dest}`, 'success');
+});
+
+// ── Resolve modal ────────────────────────────────────────────
+function openResolveModal() {
+  document.getElementById('resolveOverlay').style.display = 'block';
+  document.getElementById('resolvePopup').style.display = 'flex';
+  requestAnimationFrame(() => document.getElementById('resolvePopup').classList.add('open'));
+}
+function closeResolveModal() {
+  document.getElementById('resolvePopup').classList.remove('open');
+  setTimeout(() => {
+    document.getElementById('resolveOverlay').style.display = 'none';
+    document.getElementById('resolvePopup').style.display = 'none';
+  }, 220);
+}
+function confirmResolve() {
+  closeResolveModal();
+  showToast('✅ Incidencia marcada como resuelta', 'success');
+}
+
+// Resolve reason buttons
+document.querySelectorAll('.resolve-reason').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.resolve-reason').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ── Notes panel ──────────────────────────────────────────────
+function toggleNotesPanel() {
+  const panel = document.getElementById('notesPanel');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  document.getElementById('notesBtn').classList.toggle('active', !isOpen);
+}
+
+// ── Tech chat ────────────────────────────────────────────────
+document.getElementById('techChatBtn').addEventListener('click', () => {
+  const panel = document.getElementById('techChatPanel');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  document.getElementById('techChatBtn').classList.toggle('active', !isOpen);
+  document.getElementById('techChatBadge').style.display = 'none';
+});
+function closeTechChat() {
+  document.getElementById('techChatPanel').style.display = 'none';
+  document.getElementById('techChatBtn').classList.remove('active');
+}
+function sendTechMsg() {
+  const input = document.getElementById('techChatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const msgs = document.getElementById('techChatMessages');
+  const div = document.createElement('div');
+  div.className = 'tech-msg tech-msg-mine';
+  div.innerHTML = `<div class="tech-msg-body"><div class="tech-msg-bubble mine">${escHtml(text)}</div><div class="tech-msg-time">ahora</div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+document.getElementById('techChatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendTechMsg();
+});
+
+// ── Private zone ─────────────────────────────────────────────
+document.getElementById('privateZoneBtn').addEventListener('click', () => {
+  document.getElementById('privateZoneOverlay').style.display = 'block';
+  document.getElementById('privateZonePanel').style.display = 'flex';
+  requestAnimationFrame(() => document.getElementById('privateZonePanel').classList.add('open'));
+});
+function closePrivateZone() {
+  document.getElementById('privateZonePanel').classList.remove('open');
+  setTimeout(() => {
+    document.getElementById('privateZoneOverlay').style.display = 'none';
+    document.getElementById('privateZonePanel').style.display = 'none';
+  }, 220);
+}
+function openConvFromZone(id) {
+  closePrivateZone();
+}
+
+// ── Multi-tab demo ───────────────────────────────────────────
+const DEMO_CONVS = [
+  { id: 'conv1', name: 'Juan Martínez',  av: 'JM', avClass: 'av-web',   channel: 'Web',   topic: 'Error en login', derived: null },
+  { id: 'conv2', name: 'Lucía García',   av: 'LG', avClass: 'av-wa',    channel: 'WA',    topic: 'Facturación',    derived: 'Ana P.' },
+  { id: 'conv3', name: 'Mario Ruiz',     av: 'MR', avClass: 'av-teams', channel: 'Teams', topic: 'Integración API',derived: null },
+  { id: 'conv4', name: 'Elena Castro',   av: 'EC', avClass: 'av-web',   channel: 'Web',   topic: 'Acceso bloqueado', derived: null },
+  { id: 'conv5', name: 'Paco Jiménez',   av: 'PJ', avClass: 'av-wa',   channel: 'WA',    topic: 'Devolución',     derived: 'Carlos R.' },
+];
+
+let openTabs = [];
+let activeTab = null;
+
+function renderConvList() {
+  const list = document.getElementById('convList');
+  list.innerHTML = DEMO_CONVS.map(c => `
+    <div class="conv-item ${openTabs.includes(c.id) ? 'has-new' : ''}" onclick="openChatTab('${c.id}')">
+      <div class="d-flex align-items-center gap-2">
+        <div class="conv-avatar ${c.avClass}">${c.av}</div>
+        <div style="flex:1;min-width:0">
+          <div class="d-flex align-items-center justify-content-between gap-1">
+            <div class="conv-name">${c.name}</div>
+            <div class="conv-time">14:3${Math.floor(Math.random()*9)}</div>
+          </div>
+          <div class="conv-preview d-flex align-items-center gap-1">
+            ${c.derived ? `<svg viewBox="0 0 10 10" width="9" height="9" fill="none" stroke="#0000D0" stroke-width="1.6"><path d="M2 5h6M6 2.5l3 2.5-3 2.5"/></svg><span style="color:var(--electric);font-size:10px">${c.derived}</span>` : c.topic}
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openChatTab(convId) {
+  const conv = DEMO_CONVS.find(c => c.id === convId);
+  if (!conv) return;
+
+  if (!openTabs.includes(convId)) {
+    openTabs.push(convId);
+  }
+  activeTab = convId;
+  renderTabs();
+  loadConvView(conv);
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('chatView').style.display = 'flex';
+  document.getElementById('chatTabsBar').style.display = 'flex';
+}
+
+function renderTabs() {
+  const tabsList = document.getElementById('chatTabsList');
+  tabsList.innerHTML = openTabs.map(id => {
+    const c = DEMO_CONVS.find(x => x.id === id);
+    return `
+      <div class="chat-tab ${id === activeTab ? 'active' : ''}" onclick="switchTab('${id}')">
+        <div class="chat-tab-av ${c.avClass}">${c.av}</div>
+        <span class="chat-tab-name">${c.name.split(' ')[0]}</span>
+        ${c.derived ? `<svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.6" style="opacity:0.6"><path d="M2 5h6M6 2.5l3 2.5-3 2.5"/></svg>` : ''}
+        <button class="chat-tab-close" onclick="event.stopPropagation();closeTab('${id}')">
+          <svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M2 2l6 6M8 2l-6 6"/>
+          </svg>
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function switchTab(id) {
+  activeTab = id;
+  const conv = DEMO_CONVS.find(c => c.id === id);
+  loadConvView(conv);
+  renderTabs();
+}
+
+function closeTab(id) {
+  openTabs = openTabs.filter(t => t !== id);
+  if (activeTab === id) {
+    activeTab = openTabs[openTabs.length - 1] || null;
+  }
+  if (openTabs.length === 0) {
+    document.getElementById('chatTabsBar').style.display = 'none';
+    document.getElementById('chatView').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'flex';
+  } else {
+    const conv = DEMO_CONVS.find(c => c.id === activeTab);
+    loadConvView(conv);
+    renderTabs();
+  }
+}
+
+function openNewChatTab() {
+  const unopen = DEMO_CONVS.filter(c => !openTabs.includes(c.id));
+  if (unopen.length > 0) openChatTab(unopen[0].id);
+}
+
+const DEMO_MESSAGES = {
+  conv1: [
+    { role: 'user', text: 'Hola, no puedo iniciar sesión en mi cuenta. Aparece un error 403.' },
+    { role: 'agent', text: '¡Hola Juan! Entiendo, voy a revisar tu cuenta ahora mismo. ¿Has intentado restablecer la contraseña?' },
+    { role: 'user', text: 'Sí, lo intenté pero el email no llega.' },
+    { role: 'agent', text: 'Revisa la carpeta de spam. Si no aparece, puedo enviártelo a un email alternativo.' },
+  ],
+  conv2: [
+    { role: 'user', text: 'Me han cobrado dos veces este mes.' },
+    { role: 'agent', text: 'Hola Lucía, lamento el inconveniente. Voy a verificar tu historial de pagos.' },
+  ],
+  conv3: [
+    { role: 'user', text: 'La API de Teams no responde desde ayer.' },
+    { role: 'agent', text: 'Buenos días Mario. ¿Qué endpoint específicamente? ¿Tienes los logs de error?' },
+    { role: 'user', text: 'El endpoint /messages, aquí los logs: ERROR 502 Bad Gateway.' },
+  ],
+  conv4: [
+    { role: 'user', text: 'Mi cuenta está bloqueada sin razón aparente.' },
+  ],
+  conv5: [
+    { role: 'user', text: 'Pedí una devolución hace 10 días y no tengo noticias.' },
+    { role: 'agent', text: 'Hola Paco, voy a revisar el estado de tu solicitud de devolución #REF-2891.' },
+  ],
+};
+
+function loadConvView(conv) {
+  document.getElementById('chatAvatar').textContent = conv.av;
+  document.getElementById('chatAvatar').className = `conv-avatar ${conv.avClass}`;
+  document.getElementById('chatUserName').textContent = conv.name;
+  document.getElementById('chatChannel').textContent = conv.channel;
+  document.getElementById('chatTopic').textContent = conv.topic;
+
+  const badge = document.getElementById('derivedBadge');
+  if (conv.derived) {
+    badge.style.display = 'inline-flex';
+    document.getElementById('derivedAgentName').textContent = conv.derived;
+  } else {
+    badge.style.display = 'none';
+  }
+
+  const area = document.getElementById('messagesArea');
+  area.innerHTML = '';
+  const msgs = DEMO_MESSAGES[conv.id] || [];
+  msgs.forEach(m => {
+    const row = document.createElement('div');
+    row.className = `msg-row ${m.role}`;
+    const avLabel = m.role === 'agent' ? 'Tú' : conv.av;
+    const avClass = m.role === 'agent' ? 'av-agent' : 'av-user';
+    row.innerHTML = `
+      <div class="msg-avatar ${avClass}">${avLabel}</div>
+      <div><div class="msg-bubble">${escHtml(m.text)}</div><div class="msg-meta">${m.role === 'agent' ? 'Tú' : conv.name} · ahora</div></div>`;
+    area.appendChild(row);
+  });
+  area.scrollTop = area.scrollHeight;
+}
+
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Init
+renderConvList();
+</script>
 </body>
 </html>
