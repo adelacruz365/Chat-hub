@@ -290,7 +290,7 @@ function renderConvList() {
         <div class="conv-time">${formatTime(c.createdAt)}</div>
       </div>
       <div class="conv-footer">
-        <span class="badge ${getBadgeClass(c.status)}">${getStatusLabel(c.status)}</span>
+        <span class="status-badge ${getBadgeClass(c.status)}">${getStatusLabel(c.status)}</span>
         <span class="ch-badge ${getChBadgeClass(c.channel)}">${getChLabel(c.channel)}</span>
         <span class="elapsed">${elapsed}</span>
       </div>

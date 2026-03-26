@@ -761,12 +761,17 @@ function openConvFromZone(id) {
 
 // ── Multi-tab demo ───────────────────────────────────────────
 const DEMO_CONVS = [
-  { id: 'conv1', name: 'Juan Martínez',  av: 'JM', avClass: 'av-web',   channel: 'Web',   topic: 'Error en login', derived: null },
-  { id: 'conv2', name: 'Lucía García',   av: 'LG', avClass: 'av-wa',    channel: 'WA',    topic: 'Facturación',    derived: 'Ana P.' },
-  { id: 'conv3', name: 'Mario Ruiz',     av: 'MR', avClass: 'av-teams', channel: 'Teams', topic: 'Integración API',derived: null },
-  { id: 'conv4', name: 'Elena Castro',   av: 'EC', avClass: 'av-web',   channel: 'Web',   topic: 'Acceso bloqueado', derived: null },
-  { id: 'conv5', name: 'Paco Jiménez',   av: 'PJ', avClass: 'av-wa',   channel: 'WA',    topic: 'Devolución',     derived: 'Carlos R.' },
+  { id: 'conv1', name: 'Juan Martínez',  av: 'JM', avClass: 'av-web',   channel: 'web',      status: 'active',  topic: 'Error en login',   derived: null },
+  { id: 'conv2', name: 'Lucía García',   av: 'LG', avClass: 'av-wa',    channel: 'whatsapp', status: 'pending', topic: 'Facturación',      derived: 'Ana P.' },
+  { id: 'conv3', name: 'Mario Ruiz',     av: 'MR', avClass: 'av-teams', channel: 'teams',    status: 'active',  topic: 'Integración API',  derived: null },
+  { id: 'conv4', name: 'Elena Castro',   av: 'EC', avClass: 'av-web',   channel: 'web',      status: 'waiting', topic: 'Acceso bloqueado', derived: null },
+  { id: 'conv5', name: 'Paco Jiménez',   av: 'PJ', avClass: 'av-wa',    channel: 'whatsapp', status: 'pending', topic: 'Devolución',       derived: 'Carlos R.' },
 ];
+
+const STATUS_LABEL = { pending: 'Pendiente', active: 'Activo', waiting: 'Esperando', resolved: 'Resuelto' };
+const STATUS_CLASS  = { pending: 'badge-pending', active: 'badge-active', waiting: 'badge-waiting', resolved: 'badge-resolved' };
+const CHANNEL_LABEL = { whatsapp: 'WhatsApp', teams: 'Teams', web: 'Web Chat' };
+const CHANNEL_CLASS = { whatsapp: 'ch-badge-wa', teams: 'ch-badge-teams', web: 'ch-badge-web' };
 
 let openTabs = [];
 let activeTab = null;
@@ -775,9 +780,9 @@ function renderConvList() {
   const list = document.getElementById('convList');
   list.innerHTML = DEMO_CONVS.map(c => `
     <div class="conv-item ${openTabs.includes(c.id) ? 'has-new' : ''}" onclick="openChatTab('${c.id}')">
-      <div class="d-flex align-items-center gap-2">
+      <div class="conv-top">
         <div class="conv-avatar ${c.avClass}">${c.av}</div>
-        <div style="flex:1;min-width:0">
+        <div class="conv-info">
           <div class="d-flex align-items-center justify-content-between gap-1">
             <div class="conv-name">${c.name}</div>
             <div class="conv-time">14:3${Math.floor(Math.random()*9)}</div>
@@ -786,6 +791,10 @@ function renderConvList() {
             ${c.derived ? `<svg viewBox="0 0 10 10" width="9" height="9" fill="none" stroke="#0000D0" stroke-width="1.6"><path d="M2 5h6M6 2.5l3 2.5-3 2.5"/></svg><span style="color:var(--electric);font-size:10px">${c.derived}</span>` : c.topic}
           </div>
         </div>
+      </div>
+      <div class="conv-footer">
+        <span class="status-badge ${STATUS_CLASS[c.status]}">${STATUS_LABEL[c.status]}</span>
+        <span class="ch-badge ${CHANNEL_CLASS[c.channel]}">${CHANNEL_LABEL[c.channel]}</span>
       </div>
     </div>
   `).join('');
