@@ -154,6 +154,7 @@ function connectWebSocket() {
   ws.onerror = () => setWsStatus('error');
 }
 
+// ─── WebSocket ────────────────────────────────────────────────
 function handleWsEvent(data) {
   switch (data.type) {
 
@@ -162,30 +163,27 @@ function handleWsEvent(data) {
       let isDuplicate = false;
 
       if (conv) {
-        // FIX: Buscar si el mensaje que llega es el eco de nuestro envío optimista
         const optIndex = (conv.messages || []).findIndex(m => m._optimistic && m.text === data.message.text);
 
         if (optIndex !== -1) {
           isDuplicate = true;
-          // Le quitamos la marca y actualizamos datos con los reales del servidor
           conv.messages[optIndex]._optimistic = false;
           if (data.message.timestamp) conv.messages[optIndex].timestamp = data.message.timestamp;
         } else {
-          // Si no es un duplicado nuestro, lo guardamos normal
           conv.messages = conv.messages || [];
           conv.messages.push(data.message);
         }
         conv.updatedAt = new Date().toISOString();
       }
 
-      // Solo pintamos el mensaje en pantalla si NO es un duplicado
       if (!isDuplicate) {
         if (data.conversationId === activeConvId) {
           appendMessage(data.message);
-        } else if (data.message.role === 'user') {
+          updateUnreadCount(data.conversationId); // IMPORTANTE
+        } else {
           const c = conversations.find(c => c.id === data.conversationId);
           if (c) {
-            markConvNew(data.conversationId);
+            updateUnreadCount(data.conversationId); // CAMBIO CLAVE
             showToast(`💬 ${c.userName}: ${data.message.text.substring(0,60)}`, 'new-msg');
           }
         }
@@ -194,64 +192,38 @@ function handleWsEvent(data) {
       renderConvList();
       break;
     }
-
-    case 'conversation.updated': {
-      const conv = conversations.find(c => c.id === data.conversationId);
-      if (conv) { conv.status = data.status; conv.assignedTo = data.assignedTo; }
-      renderConvList();
-      if (data.conversationId === activeConvId) updateDropdownInfo();
-      break;
-    }
-
-    case 'conversation.resolved': {
-      const idx = conversations.findIndex(c => c.id === data.conversationId);
-      if (idx !== -1) {
-        conversations[idx].status = 'resolved';
-        if (data.conversationId === activeConvId) appendSystemMsg('✓ Conversación resuelta');
-      }
-      resolvedCount++;
-      loadStats();
-      renderConvList();
-      break;
-    }
-
-    case 'conversation.transferred': {
-      const conv = conversations.find(c => c.id === data.conversationId);
-      if (conv) conv.status = 'pending';
-      renderConvList();
-      break;
-    }
-
-    case 'conversation.new': {
-      if (!conversations.find(c => c.id === data.conversation.id)) {
-        conversations.unshift(data.conversation);
-        renderConvList();
-        loadStats();
-        showToast(`🆕 Nueva conversación: ${data.conversation.userName}`, 'info');
-      }
-      break;
-    }
-
-    case 'agent.online':
-      showToast(`🟢 ${data.agent.name} conectado`, 'info');
-      break;
-    case 'agent.disconnected':
-      showToast('⚪ Agente desconectado', 'info');
-      break;
   }
 }
 
 // ─── New message badge ────────────────────────────────────────
-const newConvSet = new Set(); // convIds con mensajes nuevos
+const unreadCounts = new Map();
+const lastReadMap = new Map(); // NUEVO
 
 function markConvNew(convId) {
-  newConvSet.add(convId);
+  const currentCount = unreadCounts.get(convId) || 0;
+  unreadCounts.set(convId, currentCount + 1);
   renderConvList();
 }
 
 function clearConvNew(convId) {
-  newConvSet.delete(convId);
-  // no re-render needed here, called on open
+  unreadCounts.delete(convId);
+}
+
+function updateUnreadCount(convId) {
+  const conv = conversations.find(c => c.id === convId);
+  if (!conv || !conv.messages) return;
+
+  const lastRead = lastReadMap.get(convId) || 0;
+
+  const unread = conv.messages
+    .slice(lastRead)
+    .filter(m => m.role === 'user').length;
+
+  if (unread > 0) {
+    unreadCounts.set(convId, unread);
+  } else {
+    unreadCounts.delete(convId);
+  }
 }
 
 // ─── Render Conv List ─────────────────────────────────────────
@@ -276,10 +248,18 @@ function renderConvList() {
     const preview = lastMsg ? lastMsg.text.substring(0, 40) + (lastMsg.text.length > 40 ? '…' : '') : c.topic;
     const elapsed = getElapsed(c.updatedAt || c.createdAt);
     const isActive = c.id === activeConvId;
-    const isNew    = newConvSet.has(c.id) && !isActive;
+    
+    // Obtenemos la cantidad de mensajes reales sin leer
+    const unreadCount = unreadCounts.get(c.id) || 0;
+    const hasUnread   = unreadCount > 0 && !isActive;
+
+    // Globo con el número (usando el magenta de tu diseño)
+    const unreadBadge = hasUnread 
+      ? `<span style="background: var(--magenta, #FF3184); color: white; border-radius: 12px; padding: 1px 6px; font-size: 11px; font-weight: bold; margin-left: 6px;">${unreadCount}</span>` 
+      : '';
 
     return `
-    <div class="conv-item${isActive ? ' active' : ''}${isNew ? ' has-new' : ''}"
+    <div class="conv-item${isActive ? ' active' : ''}${hasUnread ? ' has-new' : ''}"
          data-id="${c.id}" onclick="openConv('${c.id}')">
       <div class="conv-top">
         <div class="conv-avatar ${getAvClass(c.channel)}">${getInitials(c.userName)}</div>
@@ -287,7 +267,10 @@ function renderConvList() {
           <div class="conv-name">${escHtml(c.userName)}</div>
           <div class="conv-preview">${escHtml(preview)}</div>
         </div>
-        <div class="conv-time">${formatTime(c.createdAt)}</div>
+        <div class="conv-time" style="display:flex; align-items:center;">
+          ${formatTime(c.createdAt)}
+          ${unreadBadge}
+        </div>
       </div>
       <div class="conv-footer">
         <span class="status-badge ${getBadgeClass(c.status)}">${getStatusLabel(c.status)}</span>
@@ -301,9 +284,16 @@ function renderConvList() {
 // ─── Open Conversation ────────────────────────────────────────
 async function openConv(convId) {
   activeConvId = convId;
-  clearConvNew(convId);
 
   const conv = conversations.find(c => c.id === convId);
+
+  // NUEVO: marcar como leído
+  if (conv && conv.messages) {
+    lastReadMap.set(convId, conv.messages.length);
+  }
+
+  clearConvNew(convId);
+
   if (!conv) return;
 
   if (conv.status === 'pending' || conv.status === 'waiting') {
@@ -323,7 +313,6 @@ async function openConv(convId) {
   chatView.style.flex = '1';
   chatView.style.overflow = 'hidden';
 
-  // Populate chat header
   const av = $('chatAvatar');
   av.textContent = getInitials(conv.userName);
   av.className   = 'conv-avatar ' + getAvClass(conv.channel);
@@ -331,7 +320,6 @@ async function openConv(convId) {
   $('chatChannel').textContent  = getChLabel(conv.channel);
   $('chatTopic').textContent    = conv.topic || '';
 
-  // Messages
   messagesArea.innerHTML = '';
   (conv.messages || []).forEach(m => appendMessage(m, false));
   setTimeout(() => { messagesArea.scrollTop = messagesArea.scrollHeight; }, 50);

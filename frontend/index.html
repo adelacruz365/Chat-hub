@@ -39,6 +39,9 @@
       <div class="stat-badge stat-resolved">
         Resueltas hoy: <strong id="stat-resolved">7</strong>
       </div>
+      <div class="ws-status connected d-flex align-items-center" id="wsStatus" title="Conectado">
+        <span class="ws-dot"></span>
+      </div>
 
       <!-- Botón Chat Interno Técnicos -->
       <button class="hdr-btn" id="techChatBtn" title="Chat interno técnicos · Alt+T">
@@ -103,8 +106,6 @@
         <button class="ch-tab" data-filter="whatsapp">WA</button>
         <button class="ch-tab" data-filter="teams">Teams</button>
         <button class="ch-tab" data-filter="web">Web</button>
-        <!-- CAMBIO: Nuevo tab para técnicos -->
-        <button class="ch-tab" data-filter="technical">Técnicos</button>
       </div>
 
       <div class="conv-list" id="convList">
@@ -244,16 +245,95 @@
       </div>
     </div>
 
-    <!-- CAMBIO: Minimized tech chat tab -->
-    <div class="tech-chat-minimized" id="techChatMinimized" style="display:none">
-      <button class="tech-minimized-tab" id="techMinimizedTab">
-        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
-        </svg>
-        <span>Chat Técnicos</span>
-        <span class="tech-minimized-badge" id="techMinimizedBadge" style="display:none">2</span>
-      </button>
+<!-- ═══ RESOLVE POPUP ═══════════════════════════════════════ -->
+<div class="overlay" id="resolveOverlay" style="display:none" onclick="closeResolveModal()"></div>
+<div class="resolve-popup" id="resolvePopup" style="display:none">
+  <div class="resolve-popup-icon">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <path d="m9 11 3 3L22 4"/>
+    </svg>
+  </div>
+  <div class="resolve-popup-title">¿Resolver incidencia?</div>
+  <div class="resolve-popup-sub">La conversación se marcará como resuelta y se cerrará el ticket activo.</div>
+
+  <div class="resolve-conv-info" id="resolveConvInfo">
+    <div class="resolve-conv-name" id="resolveConvName">Juan Martínez</div>
+    <div class="resolve-conv-meta" id="resolveConvMeta">Web · Soporte técnico · 23 min</div>
+  </div>
+
+  <div class="resolve-rating">
+    <div class="resolve-rating-label">Motivo de resolución:</div>
+    <div class="resolve-reasons">
+      <button class="resolve-reason active" data-reason="solved">✅ Problema resuelto</button>
+      <button class="resolve-reason" data-reason="noresponse">⏱ Sin respuesta del cliente</button>
+      <button class="resolve-reason" data-reason="spam">🚫 Spam / error</button>
+      <button class="resolve-reason" data-reason="escalated">📤 Escalado a otro dpto.</button>
     </div>
+  </div>
+
+  <div class="resolve-popup-actions">
+    <button class="resolve-cancel-btn" onclick="closeResolveModal()">Cancelar</button>
+    <button class="resolve-confirm-btn" onclick="confirmResolve()">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="white" stroke-width="1.8">
+        <path d="M2.5 8.5l3.5 3.5 7-7"/>
+      </svg>
+      Marcar como resuelto
+    </button>
+  </div>
+</div>
+
+<!-- ═══ TECH CHAT PANEL ══════════════════════════════════════ -->
+<div class="tech-chat-panel" id="techChatPanel" style="display:none">
+  <div class="tech-chat-header">
+    <div class="tech-chat-title">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+      </svg>
+      Chat Técnicos
+      <span class="sp-badge">PRIVADO</span>
+    </div>
+    <button class="sp-close-btn" onclick="closeTechChat()">
+      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 3l10 10M13 3L3 13"/>
+      </svg>
+    </button>
+  </div>
+  <div class="tech-chat-online">
+    <span class="tech-online-dot"></span>
+    <span id="techOnlineCount">4 técnicos en línea</span>
+  </div>
+  <div class="tech-chat-messages" id="techChatMessages">
+    <div class="tech-msg tech-msg-other">
+      <div class="tech-msg-av" style="background:#ede9fe;color:#7c3aed">CR</div>
+      <div class="tech-msg-body">
+        <div class="tech-msg-name">Carlos R.</div>
+        <div class="tech-msg-bubble">¿Alguien tiene acceso al servidor de prod para revisar los logs del error 502?</div>
+        <div class="tech-msg-time">14:28</div>
+      </div>
+    </div>
+    <div class="tech-msg tech-msg-other">
+      <div class="tech-msg-av" style="background:#fef3c7;color:#92400e">AP</div>
+      <div class="tech-msg-body">
+        <div class="tech-msg-name">Ana P.</div>
+        <div class="tech-msg-bubble">Sí, lo reviso ahora. Dame 2 minutos.</div>
+        <div class="tech-msg-time">14:29</div>
+      </div>
+    </div>
+    <div class="tech-msg tech-msg-mine">
+      <div class="tech-msg-body">
+        <div class="tech-msg-bubble mine">Ya está escalado el ticket #4821, acabo de notificar a infra.</div>
+        <div class="tech-msg-time">14:31</div>
+      </div>
+    </div>
+  </div>
+  <div class="tech-chat-input-area">
+    <input class="tech-chat-input" id="techChatInput" placeholder="Mensaje al equipo técnico...">
+    <button class="tech-chat-send" onclick="sendTechMsg()">
+      <svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </div>
+</div>
 
   </div>
 
@@ -264,53 +344,174 @@
 
 <!-- ═══ DEMO LOGIC ═══════════════════════════════════════════ -->
 <script>
-// ── Demo data ─────────────────────────────────────────────────
-const DEMO_CONVS = [
-  { id: 'conv1', name: 'Juan Pérez', av: 'JP', avClass: 'av-user', channel: 'whatsapp', status: 'active', topic: 'Error de acceso', updatedAt: new Date().toISOString(), unread: false },
-  { id: 'conv2', name: 'Lucía Gómez', av: 'LG', avClass: 'av-user', channel: 'web', status: 'pending', topic: 'Doble cobro', updatedAt: new Date(Date.now() - 1000 * 60 * 3).toISOString(), unread: true },
-  { id: 'conv3', name: 'Mario Tech', av: 'MT', avClass: 'av-user', channel: 'teams', status: 'active', topic: 'API no responde', updatedAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(), derived: 'Agente María' },
-  { id: 'conv4', name: 'Ana Ruiz', av: 'AR', avClass: 'av-user', channel: 'whatsapp', status: 'waiting', topic: 'Cuenta bloqueada', updatedAt: new Date(Date.now() - 1000 * 60 * 25).toISOString() },
-  { id: 'conv5', name: 'Paco Ramírez', av: 'PR', avClass: 'av-user', channel: 'web', status: 'pending', topic: 'Devolución pendiente', updatedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString() },
-  // CAMBIO: Conversación de técnicos
-  { id: 'techconv1', name: 'Equipo Técnico', av: 'ET', avClass: 'av-tech', channel: 'technical', status: 'active', topic: 'Coordinación interna', updatedAt: new Date().toISOString(), isTechnical: true },
+// ── Demo / UI interactions for new features ─────────────────
+
+const AGENTS = [
+  { id: 'a1', name: 'Carlos Rodríguez', initials: 'CR', color: '#7c3aed', bg: '#ede9fe', dept: 'Técnico N2', available: true },
+  { id: 'a2', name: 'Ana Pereira',       initials: 'AP', color: '#92400e', bg: '#fef3c7', dept: 'Soporte',    available: true },
+  { id: 'a3', name: 'Diego Morales',     initials: 'DM', color: '#15803d', bg: '#dcfce7', dept: 'Billing',    available: true },
+  { id: 'a4', name: 'Sofía Vidal',       initials: 'SV', color: '#0369a1', bg: '#e0f2fe', dept: 'Sales',      available: false },
+  { id: 'a5', name: 'Tomás Herrera',     initials: 'TH', color: '#9d174d', bg: '#fce7f3', dept: 'Técnico N1', available: true },
 ];
 
-let openPanels = [];
-let currentFilter = 'all';
-let searchQuery = '';
-let pinnedMessages = {}; // { convId: [messageIds] }
-let sidebarCollapsed = false;
+let selectedTransferAgent = null;
 
-// ── Render conversation list ─────────────────────────────────
+// Render transfer agent list
+function renderTransferAgents() {
+  const list = document.getElementById('transferAgentsList');
+  list.innerHTML = AGENTS.filter(a => a.available).map(a => `
+    <div class="transfer-agent-item" data-id="${a.id}" onclick="selectTransferAgent('${a.id}')">
+      <div class="transfer-agent-av" style="background:${a.bg};color:${a.color}">${a.initials}</div>
+      <div class="transfer-agent-info">
+        <div class="transfer-agent-name">${a.name}</div>
+        <div class="transfer-agent-dept">${a.dept}</div>
+      </div>
+      <span class="transfer-agent-status available">●</span>
+    </div>
+  `).join('');
+}
+
+function selectTransferAgent(id) {
+  selectedTransferAgent = id;
+  const agent = AGENTS.find(a => a.id === id);
+  document.getElementById('transferTargetName').textContent = agent.name;
+  document.getElementById('transferQueueSelect').value = '';
+  document.querySelectorAll('.transfer-agent-item').forEach(el => el.classList.remove('selected'));
+  document.querySelector(`.transfer-agent-item[data-id="${id}"]`).classList.add('selected');
+}
+
+function openTransferModal() {
+  renderTransferAgents();
+  selectedTransferAgent = null;
+  document.getElementById('transferTargetName').textContent = 'Selecciona un agente o cola';
+  document.getElementById('transferNote').value = '';
+  document.getElementById('transferQueueSelect').value = '';
+  document.querySelectorAll('.transfer-agent-item').forEach(el => el.classList.remove('selected'));
+  document.getElementById('transferOverlay').style.display = 'block';
+  document.getElementById('transferPopup').style.display = 'flex';
+  requestAnimationFrame(() => document.getElementById('transferPopup').classList.add('open'));
+}
+
+function closeTransferModal() {
+  document.getElementById('transferPopup').classList.remove('open');
+  setTimeout(() => {
+    document.getElementById('transferOverlay').style.display = 'none';
+    document.getElementById('transferPopup').style.display = 'none';
+  }, 200);
+}
+
+document.getElementById('confirmTransfer').addEventListener('click', () => {
+  const agent = AGENTS.find(a => a.id === selectedTransferAgent);
+  const queue = document.getElementById('transferQueueSelect').value;
+  const dest = agent ? agent.name : (queue || null);
+  if (!dest) { alert('Selecciona un agente o una cola'); return; }
+  closeTransferModal();
+  // Show derived badge
+  document.getElementById('derivedBadge').style.display = 'inline-flex';
+  document.getElementById('derivedAgentName').textContent = dest;
+  showToast(`Conversación transferida a ${dest}`, 'success');
+});
+
+// ── Resolve modal ────────────────────────────────────────────
+function openResolveModal() {
+  document.getElementById('resolveOverlay').style.display = 'block';
+  document.getElementById('resolvePopup').style.display = 'flex';
+  requestAnimationFrame(() => document.getElementById('resolvePopup').classList.add('open'));
+}
+function closeResolveModal() {
+  document.getElementById('resolvePopup').classList.remove('open');
+  setTimeout(() => {
+    document.getElementById('resolveOverlay').style.display = 'none';
+    document.getElementById('resolvePopup').style.display = 'none';
+  }, 220);
+}
+function confirmResolve() {
+  closeResolveModal();
+  showToast('✅ Incidencia marcada como resuelta', 'success');
+}
+
+// Resolve reason buttons
+document.querySelectorAll('.resolve-reason').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.resolve-reason').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ── Notes panel ──────────────────────────────────────────────
+function toggleNotesPanel() {
+  const panel = document.getElementById('notesPanel');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  document.getElementById('notesBtn').classList.toggle('active', !isOpen);
+}
+
+// ── Tech chat ────────────────────────────────────────────────
+document.getElementById('techChatBtn').addEventListener('click', () => {
+  const panel = document.getElementById('techChatPanel');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  document.getElementById('techChatBtn').classList.toggle('active', !isOpen);
+  document.getElementById('techChatBadge').style.display = 'none';
+});
+function closeTechChat() {
+  document.getElementById('techChatPanel').style.display = 'none';
+  document.getElementById('techChatBtn').classList.remove('active');
+}
+function sendTechMsg() {
+  const input = document.getElementById('techChatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const msgs = document.getElementById('techChatMessages');
+  const div = document.createElement('div');
+  div.className = 'tech-msg tech-msg-mine';
+  div.innerHTML = `<div class="tech-msg-body"><div class="tech-msg-bubble mine">${escHtml(text)}</div><div class="tech-msg-time">ahora</div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+document.getElementById('techChatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendTechMsg();
+});
+
+// ── Private zone ─────────────────────────────────────────────
+document.getElementById('privateZoneBtn').addEventListener('click', () => {
+  document.getElementById('privateZoneOverlay').style.display = 'block';
+  document.getElementById('privateZonePanel').style.display = 'flex';
+  requestAnimationFrame(() => document.getElementById('privateZonePanel').classList.add('open'));
+});
+function closePrivateZone() {
+  document.getElementById('privateZonePanel').classList.remove('open');
+  setTimeout(() => {
+    document.getElementById('privateZoneOverlay').style.display = 'none';
+    document.getElementById('privateZonePanel').style.display = 'none';
+  }, 220);
+}
+function openConvFromZone(id) {
+  closePrivateZone();
+}
+
+// ── Multi-panel demo ─────────────────────────────────────────
+const DEMO_CONVS = [
+  { id: 'conv1', name: 'Juan Martínez',  av: 'JM', avClass: 'av-web',   channel: 'web',      status: 'active',  topic: 'Error en login',   derived: null },
+  { id: 'conv2', name: 'Lucía García',   av: 'LG', avClass: 'av-wa',    channel: 'whatsapp', status: 'pending', topic: 'Facturación',      derived: 'Ana P.' },
+  { id: 'conv3', name: 'Mario Ruiz',     av: 'MR', avClass: 'av-teams', channel: 'teams',    status: 'active',  topic: 'Integración API',  derived: null },
+  { id: 'conv4', name: 'Elena Castro',   av: 'EC', avClass: 'av-web',   channel: 'web',      status: 'waiting', topic: 'Acceso bloqueado', derived: null },
+  { id: 'conv5', name: 'Paco Jiménez',   av: 'PJ', avClass: 'av-wa',    channel: 'whatsapp', status: 'pending', topic: 'Devolución',       derived: 'Carlos R.' },
+];
+
+const STATUS_LABEL = { pending: 'Pendiente', active: 'Activo', waiting: 'Esperando', resolved: 'Resuelto' };
+const STATUS_CLASS  = { pending: 'badge-pending', active: 'badge-active', waiting: 'badge-waiting', resolved: 'badge-resolved' };
+const CHANNEL_LABEL = { whatsapp: 'WhatsApp', teams: 'Teams', web: 'Web Chat' };
+const CHANNEL_CLASS = { whatsapp: 'ch-badge-wa', teams: 'ch-badge-teams', web: 'ch-badge-web' };
+
+const MAX_PANELS = 4;
+let openPanels = []; // array of convId strings
+
 function renderConvList() {
   const list = document.getElementById('convList');
-  
-  let filtered = DEMO_CONVS.filter(c => {
-    // CAMBIO: Filtro mejorado incluyendo técnicos
-    if (currentFilter === 'all') return true;
-    if (currentFilter === 'technical') return c.isTechnical;
-    return c.channel === currentFilter;
-  });
-
-  // CAMBIO: Búsqueda funcional por nombre de usuario
-  if (searchQuery.trim()) {
-    const q = searchQuery.toLowerCase();
-    filtered = filtered.filter(c => c.name.toLowerCase().includes(q));
-  }
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<div class="loading-state">No hay conversaciones</div>';
-    return;
-  }
-
-  list.innerHTML = filtered.map(c => {
-    const isActive = openPanels.includes(c.id);
-    const chBadge = c.isTechnical 
-      ? '<span class="ch-badge ch-badge-tech">Técnicos</span>'
-      : `<span class="ch-badge ${getChBadgeClass(c.channel)}">${getChLabel(c.channel)}</span>`;
-    
-    return `
-    <div class="conv-item ${isActive ? 'active' : ''} ${c.unread ? 'has-new' : ''}" onclick="openChatPanel('${c.id}')">
+  list.innerHTML = DEMO_CONVS.map(c => `
+    <div class="conv-item ${openPanels.includes(c.id) ? 'active' : ''}" onclick="openChatPanel('${c.id}')">
       <div class="conv-top">
         <div class="conv-avatar ${c.avClass}">${c.av}</div>
         <div class="conv-info">
@@ -323,27 +524,22 @@ function renderConvList() {
         <span class="conv-badge ${getBadgeClass(c.status)}">${getStatusLabel(c.status)}</span>
         <span class="conv-time">${formatTime(c.updatedAt)}</span>
       </div>
-    </div>`;
-  }).join('');
-  
-  document.getElementById('queueCount').textContent = filtered.length;
-  document.getElementById('collapsedCount').textContent = filtered.length;
+    </div>
+  `).join('');
 }
 
-// ── Open/close chat panels ───────────────────────────────────
 function openChatPanel(convId) {
-  if (openPanels.includes(convId)) return;
-  
-  // CAMBIO: Layout responsive - máximo 4 chats
-  if (openPanels.length >= 4) {
-    showToast('Máximo 4 conversaciones abiertas', 'info');
-    return;
-  }
-  
+  if (openPanels.includes(convId)) return; // ya abierto
+  if (openPanels.length >= MAX_PANELS) return; // máximo 4
+  const conv = DEMO_CONVS.find(c => c.id === convId);
+  if (!conv) return;
+
   openPanels.push(convId);
   renderChatPanels();
   document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('chatPanels').style.display = 'grid';
+  document.getElementById('chatPanels').style.display = 'flex';
+  renderPanels();
+  renderConvList();
 }
 
 function closeChatPanel(convId) {
@@ -352,7 +548,7 @@ function closeChatPanel(convId) {
     document.getElementById('emptyState').style.display = 'flex';
     document.getElementById('chatPanels').style.display = 'none';
   }
-  renderChatPanels();
+  renderConvList();
 }
 
 function renderChatPanels() {
@@ -371,6 +567,9 @@ function renderChatPanels() {
   }
   
   container.innerHTML = openPanels.map(convId => {
+    // Técnicos panel
+    if (convId.startsWith('tec-')) return renderTecPanel(convId);
+
     const conv = DEMO_CONVS.find(c => c.id === convId);
     if (!conv) return '';
     
@@ -656,144 +855,18 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// CAMBIO: Sidebar collapse/expand functionality
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const sidebarCollapsed = document.getElementById('sidebarCollapsed');
-  const isCollapsed = sidebar.style.display === 'none';
-  
-  if (isCollapsed) {
-    sidebar.style.display = 'flex';
-    sidebarCollapsed.style.display = 'none';
-  } else {
-    sidebar.style.display = 'none';
-    sidebarCollapsed.style.display = 'flex';
-  }
-}
+// Init
+renderConvList();
 
-// CAMBIO: Tech chat functionality
-let techChatOpen = false;
-let techChatMinimized = false;
-
-function openTechChat() {
-  const modal = document.getElementById('techChatModal');
-  const minimized = document.getElementById('techChatMinimized');
-  techChatOpen = true;
-  techChatMinimized = false;
-  modal.style.display = 'block';
-  minimized.style.display = 'none';
-  
-  // Cargar mensajes de técnicos
-  const messages = DEMO_MESSAGES.techconv1 || [];
-  const container = document.getElementById('techChatMessages');
-  container.innerHTML = messages.map(msg => `
-    <div class="tech-msg-row ${msg.role}">
-      <div class="tech-msg-bubble">${escHtml(msg.text)}</div>
-      <div class="tech-msg-meta">${msg.role === 'agent' ? 'Tú' : 'Equipo'} · ahora</div>
-    </div>
-  `).join('');
-  container.scrollTop = container.scrollHeight;
-}
-
-function closeTechChat() {
-  const modal = document.getElementById('techChatModal');
-  const minimized = document.getElementById('techChatMinimized');
-  techChatOpen = false;
-  techChatMinimized = false;
-  modal.style.display = 'none';
-  minimized.style.display = 'none';
-}
-
-function minimizeTechChat() {
-  const modal = document.getElementById('techChatModal');
-  const minimized = document.getElementById('techChatMinimized');
-  techChatOpen = false;
-  techChatMinimized = true;
-  modal.style.display = 'none';
-  minimized.style.display = 'flex';
-}
-
-function restoreTechChat() {
-  openTechChat();
-}
-
-function sendTechMessage() {
-  const input = document.getElementById('techChatInput');
-  const text = input.value.trim();
-  if (!text) return;
-  
-  const container = document.getElementById('techChatMessages');
-  const row = document.createElement('div');
-  row.className = 'tech-msg-row agent';
-  row.innerHTML = `
-    <div class="tech-msg-bubble">${escHtml(text)}</div>
-    <div class="tech-msg-meta">Tú · ahora</div>
-  `;
-  container.appendChild(row);
-  container.scrollTop = container.scrollHeight;
-  input.value = '';
-}
-
-// CAMBIO: Búsqueda funcional
-function handleSearch() {
-  const input = document.getElementById('searchInput');
-  searchQuery = input.value;
-  renderConvList();
-}
-
-// Event listeners
-document.addEventListener('DOMContentLoaded', () => {
-  // Channel tabs
-  document.querySelectorAll('.ch-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.ch-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentFilter = tab.dataset.filter;
-      renderConvList();
-    });
-  });
-  
-  // Sidebar collapse
-  document.getElementById('sidebarCollapseBtn').addEventListener('click', toggleSidebar);
-  document.getElementById('sidebarExpandBtn').addEventListener('click', toggleSidebar);
-  
-  // Tech chat
-  document.getElementById('techChatBtn').addEventListener('click', openTechChat);
-  document.getElementById('techCloseBtn').addEventListener('click', closeTechChat);
-  document.getElementById('techMinimizeBtn').addEventListener('click', minimizeTechChat);
-  document.getElementById('techMinimizedTab').addEventListener('click', restoreTechChat);
-  document.getElementById('techSendBtn').addEventListener('click', sendTechMessage);
-  document.getElementById('techChatInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendTechMessage();
-    }
-  });
-  
-  // Search
-  document.getElementById('searchInput').addEventListener('input', handleSearch);
-  
-  renderConvList();
+// ── Asistente toggle ─────────────────────────────────────────
+document.getElementById('kbToggleBtn').addEventListener('click', () => {
+  const panel = document.getElementById('kbPanel');
+  const btn   = document.getElementById('kbToggleBtn');
+  const resizeHandle = document.getElementById('resizeRight');
+  const isHidden = panel.classList.toggle('kb-hidden');
+  btn.classList.toggle('active', !isHidden);
+  if (resizeHandle) resizeHandle.style.display = isHidden ? 'none' : '';
 });
-
-// Helper functions
-function getChLabel(ch) {
-  return { whatsapp: 'WhatsApp', teams: 'Teams', web: 'Web Chat', technical: 'Técnicos' }[ch] || ch;
-}
-function getChBadgeClass(ch) {
-  return ch === 'whatsapp' ? 'ch-badge-wa' : ch === 'teams' ? 'ch-badge-teams' : ch === 'technical' ? 'ch-badge-tech' : 'ch-badge-web';
-}
-function getBadgeClass(s) {
-  return s === 'active' ? 'badge-active' : s === 'waiting' ? 'badge-waiting' : s === 'resolved' ? 'badge-resolved' : 'badge-pending';
-}
-function getStatusLabel(s) {
-  return { pending: 'Pendiente', active: 'Activo', waiting: 'Esperando', resolved: 'Resuelto' }[s] || s;
-}
-function formatTime(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-}
 </script>
 </body>
 </html>
