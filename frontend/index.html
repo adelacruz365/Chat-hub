@@ -593,22 +593,27 @@ function tecnicoItem(t) {
   const onlineDot = t.type === 'dm'
     ? `<span class="tec-online-dot ${t.online ? 'online' : 'offline'}"></span>`
     : '';
-  const unreadBadge = t.unread > 0
-    ? `<span class="tec-unread">${t.unread}</span>`
-    : '';
+  const typeLabel = t.type === 'dm' ? 'Directo' : 'Canal';
+  const typeBadgeClass = t.type === 'dm' ? 'ch-badge-web' : 'ch-badge-teams';
+  const statusLabel = t.type === 'dm' ? (t.online ? 'Activo' : 'Desconectado') : 'Grupo';
+  const statusClass = t.type === 'dm' ? (t.online ? 'badge-active' : 'badge-resolved') : 'badge-waiting';
   return `
     <div class="conv-item tec-item ${openPanels.includes(t.id) ? 'active' : ''}" onclick="openTecPanel('${t.id}')">
       <div class="conv-top">
-        <div class="conv-avatar" style="background:${t.avBg};color:${t.avColor};position:relative;font-size:10px">
+        <div class="conv-avatar av-tech" style="position:relative">
           ${t.av}${onlineDot}
         </div>
         <div class="conv-info">
           <div class="d-flex align-items-center justify-content-between gap-1">
             <div class="conv-name">${escHtml(t.name)}</div>
-            <div class="conv-time d-flex align-items-center gap-1">${t.time}${unreadBadge}</div>
+            <div class="conv-time">${t.time}</div>
           </div>
           <div class="conv-preview">${escHtml(t.lastMsg)}</div>
         </div>
+      </div>
+      <div class="conv-footer">
+        <span class="status-badge ${statusClass}">${statusLabel}</span>
+        <span class="ch-badge ${typeBadgeClass}">${typeLabel}</span>
       </div>
     </div>`;
 }
