@@ -9,17 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
-  <style>
-    .kb-column {
-      transition: width 0.2s ease, min-width 0.2s ease, border-width 0.2s ease;
-    }
-    .kb-column.kb-hidden {
-      width: 0 !important;
-      min-width: 0 !important;
-      border-left-width: 0 !important;
-      overflow: hidden;
-    }
-  </style>
 </head>
 <body>
 
@@ -37,24 +26,18 @@
     </div>
 
     <div class="header-stats d-flex align-items-center gap-3 flex-shrink-0">
-      <div class="stat-item d-flex align-items-center gap-1">
-        <span class="stat-dot green"></span>
+      <!-- CAMBIO: Nuevo estilo para las estadísticas como badges -->
+      <div class="stat-badge stat-active">
         Activas: <strong id="stat-active">3</strong>
       </div>
-      <div class="stat-item d-flex align-items-center gap-1">
-        <span class="stat-dot amber"></span>
+      <div class="stat-badge stat-pending">
         Pendientes: <strong id="stat-pending">2</strong>
       </div>
-      <div class="stat-item d-flex align-items-center gap-1">
-        <span class="stat-dot blue-dot"></span>
+      <div class="stat-badge stat-response">
         Resp. Media: <strong>1m 12s</strong>
       </div>
-      <div class="stat-item d-flex align-items-center gap-1">
-        <span class="stat-dot teal"></span>
+      <div class="stat-badge stat-resolved">
         Resueltas hoy: <strong id="stat-resolved">7</strong>
-      </div>
-      <div class="ws-status connected d-flex align-items-center" id="wsStatus" title="Conectado">
-        <span class="ws-dot"></span>
       </div>
 
       <!-- Botón Chat Interno Técnicos -->
@@ -75,13 +58,7 @@
         <span>Mi zona</span>
       </button>
 
-      <!-- Botón buscador -->
-      <button class="hdr-btn" id="searchToggleBtn" title="Buscar · Alt+S">
-        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="6.5" cy="6.5" r="5"/><path d="m10.5 10.5 3.5 3.5"/>
-        </svg>
-        <span>Buscar</span>
-      </button>
+      <!-- CAMBIO: Botón de búsqueda ELIMINADO -->
 
       <!-- Botón asistente KB -->
       <button class="hdr-btn" id="kbToggleBtn" title="Asistente técnico · Alt+K">
@@ -102,14 +79,23 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header d-flex align-items-center justify-content-between px-3 pt-2 pb-1">
         <div class="sidebar-title">Conversaciones</div>
-        <div class="sidebar-count" id="queueCount">5</div>
+        <div class="d-flex align-items-center gap-2">
+          <div class="sidebar-count" id="queueCount">5</div>
+          <!-- CAMBIO: Botón para colapsar/expandir sidebar -->
+          <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Colapsar sidebar">
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M10 3L5 8l5 5"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
+      <!-- CAMBIO: Buscador de usuarios mejorado -->
       <div class="search-wrap">
         <svg class="search-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="6.5" cy="6.5" r="5"/><path d="m10.5 10.5 3.5 3.5"/>
         </svg>
-        <input class="search-input" id="searchInput" placeholder="Buscar...">
+        <input class="search-input" id="searchInput" placeholder="Buscar usuario...">
       </div>
 
       <div class="channel-tabs" id="channelTabs">
@@ -117,12 +103,24 @@
         <button class="ch-tab" data-filter="whatsapp">WA</button>
         <button class="ch-tab" data-filter="teams">Teams</button>
         <button class="ch-tab" data-filter="web">Web</button>
+        <!-- CAMBIO: Nuevo tab para técnicos -->
+        <button class="ch-tab" data-filter="technical">Técnicos</button>
       </div>
 
       <div class="conv-list" id="convList">
         <!-- Conversations rendered by JS demo -->
       </div>
     </aside>
+
+    <!-- CAMBIO: Collapsed sidebar placeholder -->
+    <div class="sidebar-collapsed" id="sidebarCollapsed" style="display:none">
+      <button class="sidebar-expand-btn" id="sidebarExpandBtn" title="Expandir sidebar">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 3l5 5-5 5"/>
+        </svg>
+      </button>
+      <div class="sidebar-collapsed-count" id="collapsedCount">5</div>
+    </div>
 
     <div class="resize-handle" id="resizeLeft"></div>
 
@@ -186,582 +184,291 @@
         <button class="kb-shortcut" data-query="¿Cómo escalar una conversación a nivel 2?">Escalar N2</button>
         <button class="kb-shortcut" data-query="Protocolo de incidencias críticas">Incidencia crítica</button>
         <button class="kb-shortcut" data-query="Pasos para resetear credenciales de cliente">Reset credenciales</button>
-        <button class="kb-shortcut" data-query="Política de SLA y tiempos de respuesta">SLA & Tiempos</button>
       </div>
       <div class="kb-messages" id="kbMessages">
         <div class="kb-welcome">
           <div class="kb-welcome-icon">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.3">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-              <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
+            <svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="8" r="6.5"/>
+              <path d="M6 6c0-1.1.9-2 2-2s2 .9 2 2c0 .9-.6 1.5-1.3 1.8C8 8.1 8 8.5 8 9"/>
+              <circle cx="8" cy="11.5" r=".75" fill="currentColor" stroke="none"/>
             </svg>
           </div>
-          <div class="kb-welcome-text">Asistente técnico interno</div>
-          <div class="kb-welcome-sub">Consulta procedimientos, políticas y documentación. Solo para agentes.</div>
+          <div class="kb-welcome-text">Asistente de Soporte Técnico</div>
+          <div class="kb-welcome-sub">Pregunta lo que necesites sobre procedimientos, configuraciones o normativa interna</div>
         </div>
       </div>
       <div class="kb-input-area">
-        <div class="kb-input-row d-flex align-items-end gap-2">
-          <textarea class="kb-input" id="kbInput" placeholder="Pregunta sobre procedimientos, errores..." rows="1"></textarea>
+        <div class="d-flex gap-2 align-items-end">
+          <textarea class="kb-input" id="kbInput" placeholder="Escribe tu pregunta..." rows="1"></textarea>
           <button class="kb-send-btn" id="kbSendBtn">
-            <svg viewBox="0 0 24 24" fill="white" width="13" height="13"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
           </button>
         </div>
-        <div class="kb-input-hint">Enter enviar · Shift+Enter nueva línea · Alt+K abrir/cerrar</div>
+        <div class="kb-input-hint">Presiona Enter para enviar, Shift+Enter para nueva línea</div>
       </div>
     </aside>
 
-  </div><!-- /main -->
-</div><!-- /app -->
-
-<!-- ═══ TOAST ═══════════════════════════════════════════════ -->
-<div id="toastContainer"></div>
-
-<!-- ═══ SEARCH PANEL ════════════════════════════════════════ -->
-<div class="side-panel search-panel" id="searchPanel">
-  <div class="sp-header-bar">
-    <div class="sp-header-title">
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="6.5" cy="6.5" r="5"/><path d="m10.5 10.5 3.5 3.5"/>
-      </svg>
-      Buscador interno
-      <span class="sp-badge">AGENTES</span>
-    </div>
-    <button class="sp-close-btn" id="searchCloseBtn">
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 3l10 10M13 3L3 13"/>
-      </svg>
-    </button>
-  </div>
-  <div class="sp-search-area">
-    <div class="sp-search-bar">
-      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" class="sp-search-icon">
-        <circle cx="6.5" cy="6.5" r="5"/><path d="m10.5 10.5 3.5 3.5"/>
-      </svg>
-      <input class="sp-input" id="spInput" placeholder="Busca documentación, errores, procedimientos...">
-      <button class="sp-search-btn" id="spSearchBtn">Buscar</button>
-    </div>
-    <div class="sp-categories">
-      <span class="sp-cat-label">Acceso rápido:</span>
-      <button class="sp-cat">API docs</button>
-      <button class="sp-cat">Errores</button>
-      <button class="sp-cat">Escalado</button>
-      <button class="sp-cat">GDPR</button>
-    </div>
-  </div>
-  <div class="sp-results" id="spResults">
-    <div class="sp-empty-state">
-      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1" opacity="0.2">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <div class="sp-empty-text">Busca información técnica, documentación interna o procedimientos del equipo.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ TRANSFER POPUP (white, light) ═══════════════════════ -->
-<div class="overlay" id="transferOverlay" style="display:none" onclick="closeTransferModal()"></div>
-<div class="transfer-popup" id="transferPopup" style="display:none">
-  <div class="transfer-popup-header">
-    <div class="transfer-popup-title">
-      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6">
-        <path d="M2 8h12M9 3l5 5-5 5"/>
-      </svg>
-      Transferir conversación
-    </div>
-    <button class="transfer-popup-close" onclick="closeTransferModal()">
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 3l10 10M13 3L3 13"/>
-      </svg>
-    </button>
-  </div>
-  <div class="transfer-popup-body">
-    <div class="transfer-layout">
-      <!-- Column left: agent list -->
-      <div class="transfer-agents-col">
-        <div class="transfer-col-title">Agentes disponibles</div>
-        <div class="transfer-agents-list" id="transferAgentsList">
-          <!-- agents rendered by JS -->
-        </div>
-      </div>
-      <!-- Column right: form -->
-      <div class="transfer-form-col">
-        <div class="transfer-col-title">Destino de transferencia</div>
-
-        <label class="transfer-label">Transferir a:</label>
-        <div class="transfer-target-display" id="transferTargetDisplay">
-          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="8" cy="5.5" r="2.5"/>
-            <path d="M3 13c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
-          </svg>
-          <span id="transferTargetName">Selecciona un agente o cola</span>
-        </div>
-
-        <label class="transfer-label mt-3">O transferir a cola:</label>
-        <select class="transfer-select" id="transferQueueSelect">
-          <option value="">— Seleccionar cola —</option>
-          <option value="queue">Cola general</option>
-          <option value="sales">Sales</option>
-          <option value="tech">Soporte Técnico</option>
-          <option value="billing">Facturación</option>
-        </select>
-
-        <label class="transfer-label mt-3">Nota para el receptor (opcional):</label>
-        <textarea class="transfer-textarea" id="transferNote" placeholder="Añade contexto para el próximo agente..."></textarea>
-
-        <div class="transfer-footer">
-          <button class="transfer-cancel-btn" onclick="closeTransferModal()">Cancelar</button>
-          <button class="transfer-confirm-btn" id="confirmTransfer">
-            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M2 8h12M9 3l5 5-5 5"/>
+    <!-- ─── MODAL CHAT TÉCNICO ────────────────────────────────── -->
+    <div class="tech-chat-modal" id="techChatModal" style="display:none">
+      <div class="tech-chat-container">
+        <div class="tech-chat-header">
+          <div class="d-flex align-items-center gap-2">
+            <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
             </svg>
-            Transferir
+            <span>Chat Técnicos</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button class="tech-minimize-btn" id="techMinimizeBtn" title="Minimizar">
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 8h10"/>
+              </svg>
+            </button>
+            <button class="tech-close-btn" id="techCloseBtn" title="Cerrar">
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 4l8 8M12 4l-8 8"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="tech-chat-messages" id="techChatMessages">
+          <!-- Messages will be added here -->
+        </div>
+        <div class="tech-chat-input-area">
+          <textarea class="tech-chat-input" id="techChatInput" placeholder="Escribe un mensaje al equipo..." rows="1"></textarea>
+          <button class="tech-send-btn" id="techSendBtn">
+            <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
           </button>
         </div>
       </div>
     </div>
+
+    <!-- CAMBIO: Minimized tech chat tab -->
+    <div class="tech-chat-minimized" id="techChatMinimized" style="display:none">
+      <button class="tech-minimized-tab" id="techMinimizedTab">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+        </svg>
+        <span>Chat Técnicos</span>
+        <span class="tech-minimized-badge" id="techMinimizedBadge" style="display:none">2</span>
+      </button>
+    </div>
+
   </div>
+
 </div>
 
-<!-- ═══ RESOLVE POPUP ═══════════════════════════════════════ -->
-<div class="overlay" id="resolveOverlay" style="display:none" onclick="closeResolveModal()"></div>
-<div class="resolve-popup" id="resolvePopup" style="display:none">
-  <div class="resolve-popup-icon">
-    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-      <path d="m9 11 3 3L22 4"/>
-    </svg>
-  </div>
-  <div class="resolve-popup-title">¿Resolver incidencia?</div>
-  <div class="resolve-popup-sub">La conversación se marcará como resuelta y se cerrará el ticket activo.</div>
+<!-- Toast container -->
+<div id="toastContainer"></div>
 
-  <div class="resolve-conv-info" id="resolveConvInfo">
-    <div class="resolve-conv-name" id="resolveConvName">Juan Martínez</div>
-    <div class="resolve-conv-meta" id="resolveConvMeta">Web · Soporte técnico · 23 min</div>
-  </div>
-
-  <div class="resolve-rating">
-    <div class="resolve-rating-label">Motivo de resolución:</div>
-    <div class="resolve-reasons">
-      <button class="resolve-reason active" data-reason="solved">✅ Problema resuelto</button>
-      <button class="resolve-reason" data-reason="noresponse">⏱ Sin respuesta del cliente</button>
-      <button class="resolve-reason" data-reason="spam">🚫 Spam / error</button>
-      <button class="resolve-reason" data-reason="escalated">📤 Escalado a otro dpto.</button>
-    </div>
-  </div>
-
-  <div class="resolve-popup-actions">
-    <button class="resolve-cancel-btn" onclick="closeResolveModal()">Cancelar</button>
-    <button class="resolve-confirm-btn" onclick="confirmResolve()">
-      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="white" stroke-width="1.8">
-        <path d="M2.5 8.5l3.5 3.5 7-7"/>
-      </svg>
-      Marcar como resuelto
-    </button>
-  </div>
-</div>
-
-<!-- ═══ TECH CHAT PANEL ══════════════════════════════════════ -->
-<div class="tech-chat-panel" id="techChatPanel" style="display:none">
-  <div class="tech-chat-header">
-    <div class="tech-chat-title">
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
-      </svg>
-      Chat Técnicos
-      <span class="sp-badge">PRIVADO</span>
-    </div>
-    <button class="sp-close-btn" onclick="closeTechChat()">
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 3l10 10M13 3L3 13"/>
-      </svg>
-    </button>
-  </div>
-  <div class="tech-chat-online">
-    <span class="tech-online-dot"></span>
-    <span id="techOnlineCount">4 técnicos en línea</span>
-  </div>
-  <div class="tech-chat-messages" id="techChatMessages">
-    <div class="tech-msg tech-msg-other">
-      <div class="tech-msg-av" style="background:#ede9fe;color:#7c3aed">CR</div>
-      <div class="tech-msg-body">
-        <div class="tech-msg-name">Carlos R.</div>
-        <div class="tech-msg-bubble">¿Alguien tiene acceso al servidor de prod para revisar los logs del error 502?</div>
-        <div class="tech-msg-time">14:28</div>
-      </div>
-    </div>
-    <div class="tech-msg tech-msg-other">
-      <div class="tech-msg-av" style="background:#fef3c7;color:#92400e">AP</div>
-      <div class="tech-msg-body">
-        <div class="tech-msg-name">Ana P.</div>
-        <div class="tech-msg-bubble">Sí, lo reviso ahora. Dame 2 minutos.</div>
-        <div class="tech-msg-time">14:29</div>
-      </div>
-    </div>
-    <div class="tech-msg tech-msg-mine">
-      <div class="tech-msg-body">
-        <div class="tech-msg-bubble mine">Ya está escalado el ticket #4821, acabo de notificar a infra.</div>
-        <div class="tech-msg-time">14:31</div>
-      </div>
-    </div>
-  </div>
-  <div class="tech-chat-input-area">
-    <input class="tech-chat-input" id="techChatInput" placeholder="Mensaje al equipo técnico...">
-    <button class="tech-chat-send" onclick="sendTechMsg()">
-      <svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-    </button>
-  </div>
-</div>
-
-<!-- ═══ PRIVATE ZONE PANEL ══════════════════════════════════ -->
-<div class="overlay" id="privateZoneOverlay" style="display:none" onclick="closePrivateZone()"></div>
-<div class="private-zone-panel" id="privateZonePanel" style="display:none">
-  <div class="pz-header">
-    <div class="pz-title">
-      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
-        <rect x="3" y="7" width="10" height="8" rx="1.5"/>
-        <path d="M5 7V5a3 3 0 0 1 6 0v2"/>
-      </svg>
-      Mi zona privada
-    </div>
-    <button class="sp-close-btn" onclick="closePrivateZone()">
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 3l10 10M13 3L3 13"/>
-      </svg>
-    </button>
-  </div>
-
-  <div class="pz-agent-card">
-    <div class="pz-agent-av">TÚ</div>
-    <div class="pz-agent-info">
-      <div class="pz-agent-name">Agente actual</div>
-      <div class="pz-agent-status"><span class="live-dot"></span> Disponible · 3 asignados</div>
-    </div>
-  </div>
-
-  <div class="pz-section-title">Usuarios asignados a mí</div>
-  <div class="pz-assigned-list" id="pzAssignedList">
-    <div class="pz-user-row" onclick="openConvFromZone('conv1')">
-      <div class="conv-avatar av-web" style="width:28px;height:28px;font-size:9px">JM</div>
-      <div class="pz-user-info">
-        <div class="pz-user-name">Juan Martínez <span class="pz-channel-badge">Web</span></div>
-        <div class="pz-user-last">Último msg: hace 2 min · Activo</div>
-      </div>
-      <svg class="pz-arrow" viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
-        <path d="M2 5h6M6 2.5l3 2.5-3 2.5"/>
-      </svg>
-    </div>
-    <div class="pz-user-row" onclick="openConvFromZone('conv2')">
-      <div class="conv-avatar av-wa" style="width:28px;height:28px;font-size:9px">LG</div>
-      <div class="pz-user-info">
-        <div class="pz-user-name">Lucía García <span class="pz-channel-badge pz-channel-wa">WA</span></div>
-        <div class="pz-user-last">Último msg: hace 8 min · Esperando</div>
-      </div>
-      <svg class="pz-arrow" viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
-        <path d="M2 5h6M6 2.5l3 2.5-3 2.5"/>
-      </svg>
-    </div>
-    <div class="pz-user-row" onclick="openConvFromZone('conv3')">
-      <div class="conv-avatar av-teams" style="width:28px;height:28px;font-size:9px">MR</div>
-      <div class="pz-user-info">
-        <div class="pz-user-name">Mario Ruiz <span class="pz-channel-badge pz-channel-teams">Teams</span></div>
-        <div class="pz-user-last">Último msg: hace 15 min · Activo</div>
-      </div>
-      <svg class="pz-arrow" viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
-        <path d="M2 5h6M6 2.5l3 2.5-3 2.5"/>
-      </svg>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js"></script>
+<!-- ═══ DEMO LOGIC ═══════════════════════════════════════════ -->
 <script>
-// ── Demo / UI interactions for new features ─────────────────
-
-const AGENTS = [
-  { id: 'a1', name: 'Carlos Rodríguez', initials: 'CR', color: '#7c3aed', bg: '#ede9fe', dept: 'Técnico N2', available: true },
-  { id: 'a2', name: 'Ana Pereira',       initials: 'AP', color: '#92400e', bg: '#fef3c7', dept: 'Soporte',    available: true },
-  { id: 'a3', name: 'Diego Morales',     initials: 'DM', color: '#15803d', bg: '#dcfce7', dept: 'Billing',    available: true },
-  { id: 'a4', name: 'Sofía Vidal',       initials: 'SV', color: '#0369a1', bg: '#e0f2fe', dept: 'Sales',      available: false },
-  { id: 'a5', name: 'Tomás Herrera',     initials: 'TH', color: '#9d174d', bg: '#fce7f3', dept: 'Técnico N1', available: true },
-];
-
-let selectedTransferAgent = null;
-
-// Render transfer agent list
-function renderTransferAgents() {
-  const list = document.getElementById('transferAgentsList');
-  list.innerHTML = AGENTS.filter(a => a.available).map(a => `
-    <div class="transfer-agent-item" data-id="${a.id}" onclick="selectTransferAgent('${a.id}')">
-      <div class="transfer-agent-av" style="background:${a.bg};color:${a.color}">${a.initials}</div>
-      <div class="transfer-agent-info">
-        <div class="transfer-agent-name">${a.name}</div>
-        <div class="transfer-agent-dept">${a.dept}</div>
-      </div>
-      <span class="transfer-agent-status available">●</span>
-    </div>
-  `).join('');
-}
-
-function selectTransferAgent(id) {
-  selectedTransferAgent = id;
-  const agent = AGENTS.find(a => a.id === id);
-  document.getElementById('transferTargetName').textContent = agent.name;
-  document.getElementById('transferQueueSelect').value = '';
-  document.querySelectorAll('.transfer-agent-item').forEach(el => el.classList.remove('selected'));
-  document.querySelector(`.transfer-agent-item[data-id="${id}"]`).classList.add('selected');
-}
-
-function openTransferModal() {
-  renderTransferAgents();
-  selectedTransferAgent = null;
-  document.getElementById('transferTargetName').textContent = 'Selecciona un agente o cola';
-  document.getElementById('transferNote').value = '';
-  document.getElementById('transferQueueSelect').value = '';
-  document.querySelectorAll('.transfer-agent-item').forEach(el => el.classList.remove('selected'));
-  document.getElementById('transferOverlay').style.display = 'block';
-  document.getElementById('transferPopup').style.display = 'flex';
-  requestAnimationFrame(() => document.getElementById('transferPopup').classList.add('open'));
-}
-
-function closeTransferModal() {
-  document.getElementById('transferPopup').classList.remove('open');
-  setTimeout(() => {
-    document.getElementById('transferOverlay').style.display = 'none';
-    document.getElementById('transferPopup').style.display = 'none';
-  }, 200);
-}
-
-document.getElementById('confirmTransfer').addEventListener('click', () => {
-  const agent = AGENTS.find(a => a.id === selectedTransferAgent);
-  const queue = document.getElementById('transferQueueSelect').value;
-  const dest = agent ? agent.name : (queue || null);
-  if (!dest) { alert('Selecciona un agente o una cola'); return; }
-  closeTransferModal();
-  // Show derived badge
-  document.getElementById('derivedBadge').style.display = 'inline-flex';
-  document.getElementById('derivedAgentName').textContent = dest;
-  showToast(`Conversación transferida a ${dest}`, 'success');
-});
-
-// ── Resolve modal ────────────────────────────────────────────
-function openResolveModal() {
-  document.getElementById('resolveOverlay').style.display = 'block';
-  document.getElementById('resolvePopup').style.display = 'flex';
-  requestAnimationFrame(() => document.getElementById('resolvePopup').classList.add('open'));
-}
-function closeResolveModal() {
-  document.getElementById('resolvePopup').classList.remove('open');
-  setTimeout(() => {
-    document.getElementById('resolveOverlay').style.display = 'none';
-    document.getElementById('resolvePopup').style.display = 'none';
-  }, 220);
-}
-function confirmResolve() {
-  closeResolveModal();
-  showToast('✅ Incidencia marcada como resuelta', 'success');
-}
-
-// Resolve reason buttons
-document.querySelectorAll('.resolve-reason').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.resolve-reason').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
-
-// ── Notes panel ──────────────────────────────────────────────
-function toggleNotesPanel() {
-  const panel = document.getElementById('notesPanel');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'flex';
-  document.getElementById('notesBtn').classList.toggle('active', !isOpen);
-}
-
-// ── Tech chat ────────────────────────────────────────────────
-document.getElementById('techChatBtn').addEventListener('click', () => {
-  const panel = document.getElementById('techChatPanel');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'flex';
-  document.getElementById('techChatBtn').classList.toggle('active', !isOpen);
-  document.getElementById('techChatBadge').style.display = 'none';
-});
-function closeTechChat() {
-  document.getElementById('techChatPanel').style.display = 'none';
-  document.getElementById('techChatBtn').classList.remove('active');
-}
-function sendTechMsg() {
-  const input = document.getElementById('techChatInput');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  const msgs = document.getElementById('techChatMessages');
-  const div = document.createElement('div');
-  div.className = 'tech-msg tech-msg-mine';
-  div.innerHTML = `<div class="tech-msg-body"><div class="tech-msg-bubble mine">${escHtml(text)}</div><div class="tech-msg-time">ahora</div></div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-document.getElementById('techChatInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') sendTechMsg();
-});
-
-// ── Private zone ─────────────────────────────────────────────
-document.getElementById('privateZoneBtn').addEventListener('click', () => {
-  document.getElementById('privateZoneOverlay').style.display = 'block';
-  document.getElementById('privateZonePanel').style.display = 'flex';
-  requestAnimationFrame(() => document.getElementById('privateZonePanel').classList.add('open'));
-});
-function closePrivateZone() {
-  document.getElementById('privateZonePanel').classList.remove('open');
-  setTimeout(() => {
-    document.getElementById('privateZoneOverlay').style.display = 'none';
-    document.getElementById('privateZonePanel').style.display = 'none';
-  }, 220);
-}
-function openConvFromZone(id) {
-  closePrivateZone();
-}
-
-// ── Multi-panel demo ─────────────────────────────────────────
+// ── Demo data ─────────────────────────────────────────────────
 const DEMO_CONVS = [
-  { id: 'conv1', name: 'Juan Martínez',  av: 'JM', avClass: 'av-web',   channel: 'web',      status: 'active',  topic: 'Error en login',   derived: null },
-  { id: 'conv2', name: 'Lucía García',   av: 'LG', avClass: 'av-wa',    channel: 'whatsapp', status: 'pending', topic: 'Facturación',      derived: 'Ana P.' },
-  { id: 'conv3', name: 'Mario Ruiz',     av: 'MR', avClass: 'av-teams', channel: 'teams',    status: 'active',  topic: 'Integración API',  derived: null },
-  { id: 'conv4', name: 'Elena Castro',   av: 'EC', avClass: 'av-web',   channel: 'web',      status: 'waiting', topic: 'Acceso bloqueado', derived: null },
-  { id: 'conv5', name: 'Paco Jiménez',   av: 'PJ', avClass: 'av-wa',    channel: 'whatsapp', status: 'pending', topic: 'Devolución',       derived: 'Carlos R.' },
+  { id: 'conv1', name: 'Juan Pérez', av: 'JP', avClass: 'av-user', channel: 'whatsapp', status: 'active', topic: 'Error de acceso', updatedAt: new Date().toISOString(), unread: false },
+  { id: 'conv2', name: 'Lucía Gómez', av: 'LG', avClass: 'av-user', channel: 'web', status: 'pending', topic: 'Doble cobro', updatedAt: new Date(Date.now() - 1000 * 60 * 3).toISOString(), unread: true },
+  { id: 'conv3', name: 'Mario Tech', av: 'MT', avClass: 'av-user', channel: 'teams', status: 'active', topic: 'API no responde', updatedAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(), derived: 'Agente María' },
+  { id: 'conv4', name: 'Ana Ruiz', av: 'AR', avClass: 'av-user', channel: 'whatsapp', status: 'waiting', topic: 'Cuenta bloqueada', updatedAt: new Date(Date.now() - 1000 * 60 * 25).toISOString() },
+  { id: 'conv5', name: 'Paco Ramírez', av: 'PR', avClass: 'av-user', channel: 'web', status: 'pending', topic: 'Devolución pendiente', updatedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString() },
+  // CAMBIO: Conversación de técnicos
+  { id: 'techconv1', name: 'Equipo Técnico', av: 'ET', avClass: 'av-tech', channel: 'technical', status: 'active', topic: 'Coordinación interna', updatedAt: new Date().toISOString(), isTechnical: true },
 ];
 
-const STATUS_LABEL = { pending: 'Pendiente', active: 'Activo', waiting: 'Esperando', resolved: 'Resuelto' };
-const STATUS_CLASS  = { pending: 'badge-pending', active: 'badge-active', waiting: 'badge-waiting', resolved: 'badge-resolved' };
-const CHANNEL_LABEL = { whatsapp: 'WhatsApp', teams: 'Teams', web: 'Web Chat' };
-const CHANNEL_CLASS = { whatsapp: 'ch-badge-wa', teams: 'ch-badge-teams', web: 'ch-badge-web' };
+let openPanels = [];
+let currentFilter = 'all';
+let searchQuery = '';
+let pinnedMessages = {}; // { convId: [messageIds] }
+let sidebarCollapsed = false;
 
-const MAX_PANELS = 4;
-let openPanels = []; // array of convId strings
-
+// ── Render conversation list ─────────────────────────────────
 function renderConvList() {
   const list = document.getElementById('convList');
-  list.innerHTML = DEMO_CONVS.map(c => `
-    <div class="conv-item ${openPanels.includes(c.id) ? 'active' : ''}" onclick="openChatPanel('${c.id}')">
+  
+  let filtered = DEMO_CONVS.filter(c => {
+    // CAMBIO: Filtro mejorado incluyendo técnicos
+    if (currentFilter === 'all') return true;
+    if (currentFilter === 'technical') return c.isTechnical;
+    return c.channel === currentFilter;
+  });
+
+  // CAMBIO: Búsqueda funcional por nombre de usuario
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(c => c.name.toLowerCase().includes(q));
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="loading-state">No hay conversaciones</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(c => {
+    const isActive = openPanels.includes(c.id);
+    const chBadge = c.isTechnical 
+      ? '<span class="ch-badge ch-badge-tech">Técnicos</span>'
+      : `<span class="ch-badge ${getChBadgeClass(c.channel)}">${getChLabel(c.channel)}</span>`;
+    
+    return `
+    <div class="conv-item ${isActive ? 'active' : ''} ${c.unread ? 'has-new' : ''}" onclick="openChatPanel('${c.id}')">
       <div class="conv-top">
         <div class="conv-avatar ${c.avClass}">${c.av}</div>
         <div class="conv-info">
-          <div class="d-flex align-items-center justify-content-between gap-1">
-            <div class="conv-name">${c.name}</div>
-            <div class="conv-time">14:3${Math.floor(Math.random()*9)}</div>
-          </div>
-          <div class="conv-preview d-flex align-items-center gap-1">
-            ${c.derived ? `<svg viewBox="0 0 10 10" width="9" height="9" fill="none" stroke="#0000D0" stroke-width="1.6"><path d="M2 5h6M6 2.5l3 2.5-3 2.5"/></svg><span style="color:var(--electric);font-size:10px">${c.derived}</span>` : c.topic}
-          </div>
+          <div class="conv-name">${escHtml(c.name)}</div>
+          <div class="conv-topic">${escHtml(c.topic)}</div>
         </div>
       </div>
       <div class="conv-footer">
-        <span class="status-badge ${STATUS_CLASS[c.status]}">${STATUS_LABEL[c.status]}</span>
-        <span class="ch-badge ${CHANNEL_CLASS[c.channel]}">${CHANNEL_LABEL[c.channel]}</span>
+        ${chBadge}
+        <span class="conv-badge ${getBadgeClass(c.status)}">${getStatusLabel(c.status)}</span>
+        <span class="conv-time">${formatTime(c.updatedAt)}</span>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
+  
+  document.getElementById('queueCount').textContent = filtered.length;
+  document.getElementById('collapsedCount').textContent = filtered.length;
 }
 
+// ── Open/close chat panels ───────────────────────────────────
 function openChatPanel(convId) {
-  if (openPanels.includes(convId)) return; // ya abierto
-  if (openPanels.length >= MAX_PANELS) return; // máximo 4
-  const conv = DEMO_CONVS.find(c => c.id === convId);
-  if (!conv) return;
-
+  if (openPanels.includes(convId)) return;
+  
+  // CAMBIO: Layout responsive - máximo 4 chats
+  if (openPanels.length >= 4) {
+    showToast('Máximo 4 conversaciones abiertas', 'info');
+    return;
+  }
+  
   openPanels.push(convId);
+  renderChatPanels();
   document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('chatPanels').style.display = 'flex';
-  renderPanels();
-  renderConvList();
+  document.getElementById('chatPanels').style.display = 'grid';
 }
 
 function closeChatPanel(convId) {
   openPanels = openPanels.filter(id => id !== convId);
   if (openPanels.length === 0) {
-    document.getElementById('chatPanels').style.display = 'none';
     document.getElementById('emptyState').style.display = 'flex';
-  } else {
-    renderPanels();
+    document.getElementById('chatPanels').style.display = 'none';
   }
-  renderConvList();
+  renderChatPanels();
 }
 
-function renderPanels() {
+function renderChatPanels() {
   const container = document.getElementById('chatPanels');
+  
+  // CAMBIO: Grid responsive basado en número de chats abiertos
+  const panelCount = openPanels.length;
+  if (panelCount === 1) {
+    container.style.gridTemplateColumns = '1fr';
+  } else if (panelCount === 2) {
+    container.style.gridTemplateColumns = '1fr 1fr';
+  } else if (panelCount === 3) {
+    container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  } else if (panelCount === 4) {
+    container.style.gridTemplateColumns = '1fr 1fr';
+  }
+  
   container.innerHTML = openPanels.map(convId => {
     const conv = DEMO_CONVS.find(c => c.id === convId);
-    const msgs = (DEMO_MESSAGES[convId] || []).map(m => {
-      const avLabel = m.role === 'agent' ? 'Tú' : conv.av;
-      const avClass = m.role === 'agent' ? 'av-agent' : 'av-user';
-      return `<div class="msg-row ${m.role}">
-        <div class="msg-avatar ${avClass}">${avLabel}</div>
-        <div><div class="msg-bubble">${escHtml(m.text)}</div>
-        <div class="msg-meta">${m.role === 'agent' ? 'Tú' : conv.name} · ahora</div></div>
-      </div>`;
-    }).join('');
-
-    const derivedHtml = conv.derived
-      ? `<span class="derived-badge" style="display:inline-flex">
-           <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
-           ${escHtml(conv.derived)}
-         </span>`
-      : '';
-
+    if (!conv) return '';
+    
+    const messages = DEMO_MESSAGES[convId] || [];
+    const pinnedMsgs = (pinnedMessages[convId] || []).map(msgId => messages[msgId]).filter(Boolean);
+    
     return `
     <div class="chat-panel" id="panel-${convId}">
-      <div class="chat-header d-flex align-items-center justify-content-between gap-2">
-        <div class="chat-header-left d-flex align-items-center gap-2 flex-shrink-0">
+      <div class="panel-header">
+        <div class="d-flex align-items-center gap-2 flex-1 min-w-0">
           <div class="conv-avatar ${conv.avClass}">${conv.av}</div>
-          <div>
-            <div class="chat-user-name">${escHtml(conv.name)}</div>
-            <div class="chat-user-sub d-flex align-items-center gap-1">
-              <span class="live-dot"></span>
-              En vivo · ${escHtml(CHANNEL_LABEL[conv.channel])} · ${escHtml(conv.topic)}
-              ${derivedHtml}
-            </div>
+          <div class="flex-1 min-w-0">
+            <div class="panel-name">${escHtml(conv.name)}</div>
+            <div class="panel-topic">${escHtml(conv.topic)}</div>
           </div>
         </div>
-        <div class="d-flex align-items-center gap-1 flex-shrink-0">
-          <button class="action-btn resolve-btn" onclick="closeChatPanel('${convId}')">
-            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M2.5 8.5l3.5 3.5 7-7"/>
-            </svg>
-            <span class="resolve-label">Resolver</span>
-          </button>
-          <button class="panel-close-btn" title="Cerrar panel" onclick="closeChatPanel('${convId}')">
-            <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M2 2l10 10M12 2L2 12"/>
+        <div class="d-flex align-items-center gap-1">
+          <span class="ch-badge ${getChBadgeClass(conv.channel)}">${getChLabel(conv.channel)}</span>
+          <button class="panel-close" onclick="closeChatPanel('${convId}')" title="Cerrar">
+            <svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M4 4l8 8M12 4l-8 8"/>
             </svg>
           </button>
         </div>
       </div>
-      <div class="messages-area">${msgs}</div>
-      <div class="input-area">
-        <div class="input-toolbar">
-          <button class="toolbar-btn">
-            <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 1v12M1 7h12"/></svg>
-            Adjuntar
-          </button>
-          <button class="toolbar-btn">
-            <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5.5"/><path d="M7 4.5V7l1.5 1.5"/></svg>
-            Plantillas
-          </button>
-          <div class="dropdown-wrap toolbar-dropdown" id="qrWrap-${convId}">
-            <button class="toolbar-btn dropdown-trigger" onclick="toggleQR('${convId}')">
-              <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
-                <path d="M12 1H2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.5l1.5 2.5 1.5-2.5H12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
+      
+      ${pinnedMsgs.length > 0 ? `
+      <div class="pinned-messages-bar">
+        <div class="pinned-header">
+          <svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M8 2v6m-3-3l3-3 3 3M8 14v-6"/>
+          </svg>
+          <span>Mensajes fijados (${pinnedMsgs.length})</span>
+        </div>
+        ${pinnedMsgs.map((msg, idx) => `
+          <div class="pinned-msg-item">
+            <div class="pinned-msg-text">${escHtml(msg.text.substring(0, 60))}</div>
+            <button class="unpin-btn" onclick="unpinMessage('${convId}', ${messages.indexOf(msg)})" title="Dejar de fijar">
+              <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 4l8 8M12 4l-8 8"/>
               </svg>
-              Respuestas
-              <svg class="chevron" viewBox="0 0 10 6" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
             </button>
-            <div class="dropdown-panel dp-qr toolbar-qr-panel" id="qrPanel-${convId}">
-              <div class="dp-section-title">Respuestas rápidas</div>
-              <div class="dp-qr-search-wrap">
-                <input class="dp-qr-search" placeholder="Filtrar respuestas..." oninput="filterQR('${convId}', this.value)">
+          </div>
+        `).join('')}
+      </div>
+      ` : ''}
+      
+      <div class="messages-area" id="messages-${convId}">
+        ${messages.map((msg, idx) => {
+          const isPinned = (pinnedMessages[convId] || []).includes(idx);
+          return `
+          <div class="msg-row ${msg.role}" data-msg-idx="${idx}">
+            <div class="msg-avatar ${msg.role === 'agent' ? 'av-agent' : 'av-user'}">${msg.role === 'agent' ? 'Tú' : conv.av}</div>
+            <div class="flex-1">
+              <div class="msg-bubble-wrapper">
+                <div class="msg-bubble">${escHtml(msg.text)}</div>
+                <div class="msg-actions">
+                  <button class="msg-action-btn" onclick="togglePinMessage('${convId}', ${idx})" title="${isPinned ? 'Dejar de fijar' : 'Fijar mensaje'}">
+                    <svg viewBox="0 0 16 16" width="11" height="11" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.5">
+                      <path d="M8 2v6m-3-3l3-3 3 3M8 14v-6"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="msg-meta">
+                ${msg.role === 'agent' ? 'Tú' : conv.name} · ahora
+                ${msg.role === 'agent' && msg.delivered ? `
+                  <svg class="msg-check" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M3 8l3 3 7-7"/>
+                  </svg>
+                ` : ''}
+                ${msg.role === 'agent' && msg.read ? `
+                  <svg class="msg-check msg-check-read" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M1 8l3 3 7-7M5 8l3 3 7-7"/>
+                  </svg>
+                ` : ''}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      
+      <div class="panel-footer">
+        <div class="panel-actions">
+          <button class="action-btn" onclick="toggleQR('${convId}')" title="Respuestas rápidas">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 6h10M3 10h6"/>
+            </svg>
+          </button>
+          <button class="action-btn" title="Adjuntar">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 7v4a4 4 0 0 1-8 0V5a3 3 0 0 1 6 0v6a2 2 0 0 1-4 0V6"/>
+            </svg>
+          </button>
+          <div class="dropdown-wrap" id="qrWrap-${convId}">
+            <div class="dp-panel dp-qr-panel">
+              <div class="dp-qr-header">
+                <input class="dp-qr-search" placeholder="Buscar..." oninput="filterQR('${convId}', this.value)">
               </div>
               <div class="dp-qr-list" id="qrList-${convId}"></div>
             </div>
@@ -836,20 +543,57 @@ document.addEventListener('click', e => {
   }
 });
 
+// CAMBIO: Función mejorada para enviar mensajes con ticks de entrega
 function sendPanelMsg(textarea, convId) {
   const text = textarea.value.trim();
   if (!text) return;
   textarea.value = '';
   const panel = document.getElementById('panel-' + convId);
   if (!panel) return;
-  const area = panel.querySelector('.messages-area');
-  const row = document.createElement('div');
-  row.className = 'msg-row agent';
-  row.innerHTML = `<div class="msg-avatar av-agent">Tú</div>
-    <div><div class="msg-bubble">${escHtml(text)}</div>
-    <div class="msg-meta">Tú · ahora</div></div>`;
-  area.appendChild(row);
-  area.scrollTop = area.scrollHeight;
+  
+  // Añadir mensaje al array
+  if (!DEMO_MESSAGES[convId]) DEMO_MESSAGES[convId] = [];
+  const newMsg = { role: 'agent', text: text, delivered: false, read: false };
+  DEMO_MESSAGES[convId].push(newMsg);
+  
+  // Simular entrega después de 500ms
+  setTimeout(() => {
+    newMsg.delivered = true;
+    renderChatPanels();
+  }, 500);
+  
+  // Simular lectura después de 2s
+  setTimeout(() => {
+    newMsg.read = true;
+    renderChatPanels();
+  }, 2000);
+  
+  renderChatPanels();
+  
+  // Scroll al final
+  const area = document.getElementById('messages-' + convId);
+  if (area) area.scrollTop = area.scrollHeight;
+}
+
+// CAMBIO: Funciones para fijar/desfijar mensajes
+function togglePinMessage(convId, msgIdx) {
+  if (!pinnedMessages[convId]) pinnedMessages[convId] = [];
+  const idx = pinnedMessages[convId].indexOf(msgIdx);
+  if (idx > -1) {
+    pinnedMessages[convId].splice(idx, 1);
+  } else {
+    pinnedMessages[convId].push(msgIdx);
+  }
+  renderChatPanels();
+}
+
+function unpinMessage(convId, msgIdx) {
+  if (!pinnedMessages[convId]) return;
+  const idx = pinnedMessages[convId].indexOf(msgIdx);
+  if (idx > -1) {
+    pinnedMessages[convId].splice(idx, 1);
+  }
+  renderChatPanels();
 }
 
 // compat shims — funciones que el app.js puede llamar
@@ -868,17 +612,17 @@ function openResolveModal() {}
 const DEMO_MESSAGES = {
   conv1: [
     { role: 'user', text: 'Hola, no puedo iniciar sesión en mi cuenta. Aparece un error 403.' },
-    { role: 'agent', text: '¡Hola Juan! Entiendo, voy a revisar tu cuenta ahora mismo. ¿Has intentado restablecer la contraseña?' },
+    { role: 'agent', text: '¡Hola Juan! Entiendo, voy a revisar tu cuenta ahora mismo. ¿Has intentado restablecer la contraseña?', delivered: true, read: true },
     { role: 'user', text: 'Sí, lo intenté pero el email no llega.' },
-    { role: 'agent', text: 'Revisa la carpeta de spam. Si no aparece, puedo enviártelo a un email alternativo.' },
+    { role: 'agent', text: 'Revisa la carpeta de spam. Si no aparece, puedo enviártelo a un email alternativo.', delivered: true, read: false },
   ],
   conv2: [
     { role: 'user', text: 'Me han cobrado dos veces este mes.' },
-    { role: 'agent', text: 'Hola Lucía, lamento el inconveniente. Voy a verificar tu historial de pagos.' },
+    { role: 'agent', text: 'Hola Lucía, lamento el inconveniente. Voy a verificar tu historial de pagos.', delivered: true, read: true },
   ],
   conv3: [
     { role: 'user', text: 'La API de Teams no responde desde ayer.' },
-    { role: 'agent', text: 'Buenos días Mario. ¿Qué endpoint específicamente? ¿Tienes los logs de error?' },
+    { role: 'agent', text: 'Buenos días Mario. ¿Qué endpoint específicamente? ¿Tienes los logs de error?', delivered: true, read: true },
     { role: 'user', text: 'El endpoint /messages, aquí los logs: ERROR 502 Bad Gateway.' },
   ],
   conv4: [
@@ -886,39 +630,17 @@ const DEMO_MESSAGES = {
   ],
   conv5: [
     { role: 'user', text: 'Pedí una devolución hace 10 días y no tengo noticias.' },
-    { role: 'agent', text: 'Hola Paco, voy a revisar el estado de tu solicitud de devolución #REF-2891.' },
+    { role: 'agent', text: 'Hola Paco, voy a revisar el estado de tu solicitud de devolución #REF-2891.', delivered: true, read: true },
+  ],
+  techconv1: [
+    { role: 'agent', text: 'Hola equipo, necesito ayuda con el caso de Juan Pérez. Error 403 persistente.', delivered: true, read: true },
+    { role: 'user', text: 'María: He visto casos similares hoy. Parece un problema con el SSO.' },
+    { role: 'user', text: 'Carlos: Confirmo, el equipo de infraestructura está trabajando en ello.' },
   ],
 };
 
 function loadConvView(conv) {
-  document.getElementById('chatAvatar').textContent = conv.av;
-  document.getElementById('chatAvatar').className = `conv-avatar ${conv.avClass}`;
-  document.getElementById('chatUserName').textContent = conv.name;
-  document.getElementById('chatChannel').textContent = conv.channel;
-  document.getElementById('chatTopic').textContent = conv.topic;
-
-  const badge = document.getElementById('derivedBadge');
-  if (conv.derived) {
-    badge.style.display = 'inline-flex';
-    document.getElementById('derivedAgentName').textContent = conv.derived;
-  } else {
-    badge.style.display = 'none';
-  }
-
-  const area = document.getElementById('messagesArea');
-  area.innerHTML = '';
-  const msgs = DEMO_MESSAGES[conv.id] || [];
-  msgs.forEach(m => {
-    const row = document.createElement('div');
-    row.className = `msg-row ${m.role}`;
-    const avLabel = m.role === 'agent' ? 'Tú' : conv.av;
-    const avClass = m.role === 'agent' ? 'av-agent' : 'av-user';
-    row.innerHTML = `
-      <div class="msg-avatar ${avClass}">${avLabel}</div>
-      <div><div class="msg-bubble">${escHtml(m.text)}</div><div class="msg-meta">${m.role === 'agent' ? 'Tú' : conv.name} · ahora</div></div>`;
-    area.appendChild(row);
-  });
-  area.scrollTop = area.scrollHeight;
+  // Legacy compat
 }
 
 function showToast(msg, type = 'info') {
@@ -934,18 +656,144 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// Init
-renderConvList();
+// CAMBIO: Sidebar collapse/expand functionality
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarCollapsed = document.getElementById('sidebarCollapsed');
+  const isCollapsed = sidebar.style.display === 'none';
+  
+  if (isCollapsed) {
+    sidebar.style.display = 'flex';
+    sidebarCollapsed.style.display = 'none';
+  } else {
+    sidebar.style.display = 'none';
+    sidebarCollapsed.style.display = 'flex';
+  }
+}
 
-// ── Asistente toggle ─────────────────────────────────────────
-document.getElementById('kbToggleBtn').addEventListener('click', () => {
-  const panel = document.getElementById('kbPanel');
-  const btn   = document.getElementById('kbToggleBtn');
-  const resizeHandle = document.getElementById('resizeRight');
-  const isHidden = panel.classList.toggle('kb-hidden');
-  btn.classList.toggle('active', !isHidden);
-  if (resizeHandle) resizeHandle.style.display = isHidden ? 'none' : '';
+// CAMBIO: Tech chat functionality
+let techChatOpen = false;
+let techChatMinimized = false;
+
+function openTechChat() {
+  const modal = document.getElementById('techChatModal');
+  const minimized = document.getElementById('techChatMinimized');
+  techChatOpen = true;
+  techChatMinimized = false;
+  modal.style.display = 'block';
+  minimized.style.display = 'none';
+  
+  // Cargar mensajes de técnicos
+  const messages = DEMO_MESSAGES.techconv1 || [];
+  const container = document.getElementById('techChatMessages');
+  container.innerHTML = messages.map(msg => `
+    <div class="tech-msg-row ${msg.role}">
+      <div class="tech-msg-bubble">${escHtml(msg.text)}</div>
+      <div class="tech-msg-meta">${msg.role === 'agent' ? 'Tú' : 'Equipo'} · ahora</div>
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function closeTechChat() {
+  const modal = document.getElementById('techChatModal');
+  const minimized = document.getElementById('techChatMinimized');
+  techChatOpen = false;
+  techChatMinimized = false;
+  modal.style.display = 'none';
+  minimized.style.display = 'none';
+}
+
+function minimizeTechChat() {
+  const modal = document.getElementById('techChatModal');
+  const minimized = document.getElementById('techChatMinimized');
+  techChatOpen = false;
+  techChatMinimized = true;
+  modal.style.display = 'none';
+  minimized.style.display = 'flex';
+}
+
+function restoreTechChat() {
+  openTechChat();
+}
+
+function sendTechMessage() {
+  const input = document.getElementById('techChatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const container = document.getElementById('techChatMessages');
+  const row = document.createElement('div');
+  row.className = 'tech-msg-row agent';
+  row.innerHTML = `
+    <div class="tech-msg-bubble">${escHtml(text)}</div>
+    <div class="tech-msg-meta">Tú · ahora</div>
+  `;
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+  input.value = '';
+}
+
+// CAMBIO: Búsqueda funcional
+function handleSearch() {
+  const input = document.getElementById('searchInput');
+  searchQuery = input.value;
+  renderConvList();
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  // Channel tabs
+  document.querySelectorAll('.ch-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.ch-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentFilter = tab.dataset.filter;
+      renderConvList();
+    });
+  });
+  
+  // Sidebar collapse
+  document.getElementById('sidebarCollapseBtn').addEventListener('click', toggleSidebar);
+  document.getElementById('sidebarExpandBtn').addEventListener('click', toggleSidebar);
+  
+  // Tech chat
+  document.getElementById('techChatBtn').addEventListener('click', openTechChat);
+  document.getElementById('techCloseBtn').addEventListener('click', closeTechChat);
+  document.getElementById('techMinimizeBtn').addEventListener('click', minimizeTechChat);
+  document.getElementById('techMinimizedTab').addEventListener('click', restoreTechChat);
+  document.getElementById('techSendBtn').addEventListener('click', sendTechMessage);
+  document.getElementById('techChatInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendTechMessage();
+    }
+  });
+  
+  // Search
+  document.getElementById('searchInput').addEventListener('input', handleSearch);
+  
+  renderConvList();
 });
+
+// Helper functions
+function getChLabel(ch) {
+  return { whatsapp: 'WhatsApp', teams: 'Teams', web: 'Web Chat', technical: 'Técnicos' }[ch] || ch;
+}
+function getChBadgeClass(ch) {
+  return ch === 'whatsapp' ? 'ch-badge-wa' : ch === 'teams' ? 'ch-badge-teams' : ch === 'technical' ? 'ch-badge-tech' : 'ch-badge-web';
+}
+function getBadgeClass(s) {
+  return s === 'active' ? 'badge-active' : s === 'waiting' ? 'badge-waiting' : s === 'resolved' ? 'badge-resolved' : 'badge-pending';
+}
+function getStatusLabel(s) {
+  return { pending: 'Pendiente', active: 'Activo', waiting: 'Esperando', resolved: 'Resuelto' }[s] || s;
+}
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
 </script>
 </body>
 </html>
