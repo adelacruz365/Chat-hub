@@ -587,10 +587,16 @@ function initKbPanel() {
   const kbSendBtn   = $('kbSendBtn');
   const kbMessages  = $('kbMessages');
 
-  // Column is always visible — toggle button just focuses input
+  // Toggle panel visibility on button click
   if (kbToggleBtn) {
     kbToggleBtn.classList.add('active');
-    kbToggleBtn.addEventListener('click', () => { kbInput && kbInput.focus(); });
+    kbToggleBtn.addEventListener('click', () => {
+      const isHidden = kbPanel.classList.toggle('kb-hidden');
+      const resizeHandle = $('resizeRight');
+      if (resizeHandle) resizeHandle.style.display = isHidden ? 'none' : '';
+      kbToggleBtn.classList.toggle('active', !isHidden);
+      if (!isHidden && kbInput) kbInput.focus();
+    });
   }
 
   // Shortcuts
@@ -639,9 +645,9 @@ function initKbPanel() {
     kbInput.style.height = Math.min(kbInput.scrollHeight, 90) + 'px';
   });
 
-  // Alt+K focuses the assistant input
+  // Alt+K toggles the assistant panel
   document.addEventListener('keydown', e => {
-    if (e.altKey && e.key === 'k') { e.preventDefault(); kbInput.focus(); }
+    if (e.altKey && e.key === 'k') { e.preventDefault(); kbToggleBtn && kbToggleBtn.click(); }
   });
 }
 

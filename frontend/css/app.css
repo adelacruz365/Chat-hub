@@ -598,8 +598,16 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
 .send-btn:hover { background: var(--magenta); }
 .send-btn:active { background: var(--electric); }
 
-.toolbar-dropdown .dropdown-panel { bottom: calc(100% + 6px); top: auto; right: 0; }
+.toolbar-dropdown .dropdown-panel {
+  bottom: calc(100% + 6px);
+  top: auto;
+  left: 0;
+  right: auto;
+  min-width: 260px;
+  max-width: min(300px, calc(100vw - 20px));
+}
 .toolbar-dropdown .toolbar-btn { display: inline-flex; align-items: center; gap: 4px; }
+.toolbar-qr-panel .dp-qr-list { max-height: 160px; }
 
 /* ── Shared overlay ──────────────────────────────────────── */
 .overlay {
@@ -986,6 +994,13 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
   background: var(--bg-panel);
   border-left: 1px solid var(--border);
   display: flex; flex-direction: column; flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.2s ease, min-width 0.2s ease, border-width 0.2s ease;
+}
+.kb-column.kb-hidden {
+  width: 0 !important;
+  min-width: 0 !important;
+  border-left-width: 0;
   overflow: hidden;
 }
 
