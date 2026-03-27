@@ -14,7 +14,6 @@
 
 <div id="app">
 
-  <!-- ═══ HEADER ════════════════════════════════════════════ -->
   <header class="header d-flex align-items-center justify-content-between">
     <div class="header-brand d-flex align-items-center gap-2">
       <div class="brand-icon d-flex align-items-center justify-content-center flex-shrink-0">
@@ -26,7 +25,6 @@
     </div>
 
     <div class="header-stats d-flex align-items-center gap-3 flex-shrink-0">
-      <!-- CAMBIO: Nuevo estilo para las estadísticas como badges -->
       <div class="stat-badge stat-active">
         Activas: <strong id="stat-active">3</strong>
       </div>
@@ -39,20 +37,7 @@
       <div class="stat-badge stat-resolved">
         Resueltas hoy: <strong id="stat-resolved">7</strong>
       </div>
-      <div class="ws-status connected d-flex align-items-center" id="wsStatus" title="Conectado">
-        <span class="ws-dot"></span>
-      </div>
 
-      <!-- Botón Chat Interno Técnicos -->
-      <button class="hdr-btn" id="techChatBtn" title="Chat interno técnicos · Alt+T">
-        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
-        </svg>
-        <span>Técnicos</span>
-        <span class="hdr-badge" id="techChatBadge" style="display:none">2</span>
-      </button>
-
-      <!-- Botón Zona Privada -->
       <button class="hdr-btn" id="privateZoneBtn" title="Zona privada · mis usuarios asignados">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
           <rect x="3" y="7" width="10" height="8" rx="1.5"/>
@@ -61,9 +46,6 @@
         <span>Mi zona</span>
       </button>
 
-      <!-- CAMBIO: Botón de búsqueda ELIMINADO -->
-
-      <!-- Botón asistente KB -->
       <button class="hdr-btn" id="kbToggleBtn" title="Asistente técnico · Alt+K">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="8" cy="8" r="6.5"/>
@@ -75,16 +57,13 @@
     </div>
   </header>
 
-  <!-- ═══ MAIN ══════════════════════════════════════════════ -->
   <div class="main" id="mainLayout">
 
-    <!-- ─── SIDEBAR ──────────────────────────────────────── -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header d-flex align-items-center justify-content-between px-3 pt-2 pb-1">
         <div class="sidebar-title">Conversaciones</div>
         <div class="d-flex align-items-center gap-2">
           <div class="sidebar-count" id="queueCount">5</div>
-          <!-- CAMBIO: Botón para colapsar/expandir sidebar -->
           <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Colapsar sidebar">
             <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M10 3L5 8l5 5"/>
@@ -93,7 +72,6 @@
         </div>
       </div>
 
-      <!-- CAMBIO: Buscador de usuarios mejorado -->
       <div class="search-wrap">
         <svg class="search-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="6.5" cy="6.5" r="5"/><path d="m10.5 10.5 3.5 3.5"/>
@@ -106,14 +84,13 @@
         <button class="ch-tab" data-filter="whatsapp">WA</button>
         <button class="ch-tab" data-filter="teams">Teams</button>
         <button class="ch-tab" data-filter="web">Web</button>
+        <button class="ch-tab" data-filter="technical">Técnicos</button>
       </div>
 
       <div class="conv-list" id="convList">
-        <!-- Conversations rendered by JS demo -->
-      </div>
+        </div>
     </aside>
 
-    <!-- CAMBIO: Collapsed sidebar placeholder -->
     <div class="sidebar-collapsed" id="sidebarCollapsed" style="display:none">
       <button class="sidebar-expand-btn" id="sidebarExpandBtn" title="Expandir sidebar">
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -125,9 +102,7 @@
 
     <div class="resize-handle" id="resizeLeft"></div>
 
-    <!-- ─── CHAT AREA ─────────────────────────────────────── -->
     <section class="chat-area" id="chatArea">
-      <!-- Empty state -->
       <div class="empty-state" id="emptyState">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="44" height="44" opacity="0.2">
           <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
@@ -135,9 +110,7 @@
         <div class="empty-title">Selecciona una conversación</div>
         <div class="empty-sub">Elige una conversación de la cola para empezar</div>
       </div>
-      <!-- Multi-chat panels container -->
       <div class="chat-panels" id="chatPanels" style="display:none"></div>
-      <!-- Hidden compat elements for JS -->
       <div style="display:none">
         <input id="botTestInput"><button id="botTestBtn"></button>
         <div id="botTestResult"></div>
@@ -167,7 +140,6 @@
 
     <div class="resize-handle" id="resizeRight"></div>
 
-    <!-- ─── ASISTENTE COLUMN ──────────────────────────────────── -->
     <aside class="kb-column" id="kbPanel">
       <div class="sp-header-bar">
         <div class="sp-header-title">
@@ -210,7 +182,6 @@
       </div>
     </aside>
 
-    <!-- ─── MODAL CHAT TÉCNICO ────────────────────────────────── -->
     <div class="tech-chat-modal" id="techChatModal" style="display:none">
       <div class="tech-chat-container">
         <div class="tech-chat-header">
@@ -234,8 +205,7 @@
           </div>
         </div>
         <div class="tech-chat-messages" id="techChatMessages">
-          <!-- Messages will be added here -->
-        </div>
+          </div>
         <div class="tech-chat-input-area">
           <textarea class="tech-chat-input" id="techChatInput" placeholder="Escribe un mensaje al equipo..." rows="1"></textarea>
           <button class="tech-send-btn" id="techSendBtn">
@@ -245,18 +215,57 @@
       </div>
     </div>
 
-<!-- ═══ RESOLVE POPUP ═══════════════════════════════════════ -->
-<div class="overlay" id="resolveOverlay" style="display:none" onclick="closeResolveModal()"></div>
-<div class="resolve-popup" id="resolvePopup" style="display:none">
-  <div class="resolve-popup-icon">
-    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-      <path d="m9 11 3 3L22 4"/>
-    </svg>
-  </div>
-  <div class="resolve-popup-title">¿Resolver incidencia?</div>
-  <div class="resolve-popup-sub">La conversación se marcará como resuelta y se cerrará el ticket activo.</div>
+    <div class="tech-chat-minimized" id="techChatMinimized" style="display:none">
+      <button class="tech-minimized-tab" id="techMinimizedTab">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+        </svg>
+        <span>Chat Técnicos</span>
+        <span class="tech-minimized-badge" id="techMinimizedBadge" style="display:none">2</span>
+      </button>
+    </div>
 
+  </div>
+
+</div>
+
+<div id="toastContainer"></div>
+
+<div class="overlay" id="transferOverlay" style="display:none" onclick="closeTransferModal()"></div>
+<div class="transfer-popup popup-panel" id="transferPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; z-index:9999; width:400px; padding:20px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+  <h5 style="margin-top:0; margin-bottom:15px; font-weight:600;">Transferir Conversación</h5>
+  <div style="margin-bottom:15px;">
+    <label style="display:block; margin-bottom:5px; font-size:12px; color:var(--text-2);">Agente de destino:</label>
+    <div id="transferTargetName" style="font-weight:600; margin-bottom:10px; font-size:14px;">Selecciona un agente o cola</div>
+    <div class="transfer-agents-list" id="transferAgentsList" style="max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; padding:5px;"></div>
+  </div>
+  <div style="margin-bottom:15px;">
+    <label style="display:block; margin-bottom:5px; font-size:12px; color:var(--text-2);">O transferir a una cola:</label>
+    <select id="transferQueueSelect" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px;">
+      <option value="">Selecciona una cola...</option>
+      <option value="Soporte N2">Soporte N2</option>
+      <option value="Facturación">Facturación</option>
+      <option value="Ventas">Ventas</option>
+    </select>
+  </div>
+  <div style="margin-bottom:20px;">
+    <label style="display:block; margin-bottom:5px; font-size:12px; color:var(--text-2);">Nota interna:</label>
+    <textarea id="transferNote" rows="2" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px;" placeholder="Motivo de la transferencia..."></textarea>
+  </div>
+  <div style="display:flex; justify-content:flex-end; gap:10px;">
+    <button onclick="closeTransferModal()" style="padding:8px 12px; border:none; background:var(--bg-hover); border-radius:6px; cursor:pointer;">Cancelar</button>
+    <button id="confirmTransfer" style="padding:8px 12px; border:none; background:var(--electric); color:#fff; border-radius:6px; cursor:pointer;">Transferir</button>
+  </div>
+</div>
+
+<div class="overlay" id="resolveOverlay" style="display:none" onclick="closeResolveModal()"></div>
+<div class="resolve-popup popup-panel" id="resolvePopup" style="display:none">
+  <div class="resolve-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <h5 style="margin:0; font-weight:600;">Resolver Conversación</h5>
+    <button class="sp-close-btn" onclick="closeResolveModal()" style="background:none; border:none; cursor:pointer;">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l10 10M13 3L3 13"/></svg>
+    </button>
+  </div>
   <div class="resolve-conv-info" id="resolveConvInfo">
     <div class="resolve-conv-name" id="resolveConvName">Juan Martínez</div>
     <div class="resolve-conv-meta" id="resolveConvMeta">Web · Soporte técnico · 23 min</div>
@@ -272,7 +281,7 @@
     </div>
   </div>
 
-  <div class="resolve-popup-actions">
+  <div class="resolve-popup-actions mt-3" style="display:flex; justify-content:flex-end; gap:10px;">
     <button class="resolve-cancel-btn" onclick="closeResolveModal()">Cancelar</button>
     <button class="resolve-confirm-btn" onclick="confirmResolve()">
       <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="white" stroke-width="1.8">
@@ -283,66 +292,69 @@
   </div>
 </div>
 
-<!-- ═══ TECH CHAT PANEL ══════════════════════════════════════ -->
-<div class="tech-chat-panel" id="techChatPanel" style="display:none">
-  <div class="tech-chat-header">
-    <div class="tech-chat-title">
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+<div class="overlay" id="privateZoneOverlay" style="display:none" onclick="closePrivateZone()"></div>
+<div class="private-zone-panel" id="privateZonePanel" style="display:none">
+  <div class="pz-header">
+    <div class="pz-title">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="7" width="10" height="8" rx="1.5"/>
+        <path d="M5 7V5a3 3 0 0 1 6 0v2"/>
       </svg>
-      Chat Técnicos
-      <span class="sp-badge">PRIVADO</span>
+      Mi zona privada
     </div>
-    <button class="sp-close-btn" onclick="closeTechChat()">
+    <button class="sp-close-btn" onclick="closePrivateZone()">
       <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
         <path d="M3 3l10 10M13 3L3 13"/>
       </svg>
     </button>
   </div>
-  <div class="tech-chat-online">
-    <span class="tech-online-dot"></span>
-    <span id="techOnlineCount">4 técnicos en línea</span>
-  </div>
-  <div class="tech-chat-messages" id="techChatMessages">
-    <div class="tech-msg tech-msg-other">
-      <div class="tech-msg-av" style="background:#ede9fe;color:#7c3aed">CR</div>
-      <div class="tech-msg-body">
-        <div class="tech-msg-name">Carlos R.</div>
-        <div class="tech-msg-bubble">¿Alguien tiene acceso al servidor de prod para revisar los logs del error 502?</div>
-        <div class="tech-msg-time">14:28</div>
-      </div>
-    </div>
-    <div class="tech-msg tech-msg-other">
-      <div class="tech-msg-av" style="background:#fef3c7;color:#92400e">AP</div>
-      <div class="tech-msg-body">
-        <div class="tech-msg-name">Ana P.</div>
-        <div class="tech-msg-bubble">Sí, lo reviso ahora. Dame 2 minutos.</div>
-        <div class="tech-msg-time">14:29</div>
-      </div>
-    </div>
-    <div class="tech-msg tech-msg-mine">
-      <div class="tech-msg-body">
-        <div class="tech-msg-bubble mine">Ya está escalado el ticket #4821, acabo de notificar a infra.</div>
-        <div class="tech-msg-time">14:31</div>
-      </div>
+
+  <div class="pz-agent-card">
+    <div class="pz-agent-av">TÚ</div>
+    <div class="pz-agent-info">
+      <div class="pz-agent-name">Agente actual</div>
+      <div class="pz-agent-status"><span class="live-dot"></span> Disponible · 3 asignados</div>
     </div>
   </div>
-  <div class="tech-chat-input-area">
-    <input class="tech-chat-input" id="techChatInput" placeholder="Mensaje al equipo técnico...">
-    <button class="tech-chat-send" onclick="sendTechMsg()">
-      <svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-    </button>
+
+  <div class="pz-section-title">Usuarios asignados a mí</div>
+  <div class="pz-assigned-list" id="pzAssignedList">
+    <div class="pz-user-row" onclick="openConvFromZone('conv1')">
+      <div class="conv-avatar av-web" style="width:28px;height:28px;font-size:9px">JM</div>
+      <div class="pz-user-info">
+        <div class="pz-user-name">Juan Martínez <span class="pz-channel-badge">Web</span></div>
+        <div class="pz-user-last">Último msg: hace 2 min · Activo</div>
+      </div>
+      <svg class="pz-arrow" viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M2 5h6M6 2.5l3 2.5-3 2.5"/>
+      </svg>
+    </div>
+    <div class="pz-user-row" onclick="openConvFromZone('conv2')">
+      <div class="conv-avatar av-wa" style="width:28px;height:28px;font-size:9px">LG</div>
+      <div class="pz-user-info">
+        <div class="pz-user-name">Lucía García <span class="pz-channel-badge pz-channel-wa">WA</span></div>
+        <div class="pz-user-last">Último msg: hace 8 min · Esperando</div>
+      </div>
+      <svg class="pz-arrow" viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M2 5h6M6 2.5l3 2.5-3 2.5"/>
+      </svg>
+    </div>
+    <div class="pz-user-row" onclick="openConvFromZone('conv3')">
+      <div class="conv-avatar av-teams" style="width:28px;height:28px;font-size:9px">MR</div>
+      <div class="pz-user-info">
+        <div class="pz-user-name">Mario Ruiz <span class="pz-channel-badge pz-channel-teams">Teams</span></div>
+        <div class="pz-user-last">Último msg: hace 15 min · Activo</div>
+      </div>
+      <svg class="pz-arrow" viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M2 5h6M6 2.5l3 2.5-3 2.5"/>
+      </svg>
+    </div>
   </div>
 </div>
 
-  </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="app.js"></script>
 
-</div>
-
-<!-- Toast container -->
-<div id="toastContainer"></div>
-
-<!-- ═══ DEMO LOGIC ═══════════════════════════════════════════ -->
 <script>
 // ── Demo / UI interactions for new features ─────────────────
 
@@ -446,33 +458,164 @@ function toggleNotesPanel() {
   document.getElementById('notesBtn').classList.toggle('active', !isOpen);
 }
 
-// ── Tech chat ────────────────────────────────────────────────
-document.getElementById('techChatBtn').addEventListener('click', () => {
-  const panel = document.getElementById('techChatPanel');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'flex';
-  document.getElementById('techChatBtn').classList.toggle('active', !isOpen);
-  document.getElementById('techChatBadge').style.display = 'none';
-});
-function closeTechChat() {
-  document.getElementById('techChatPanel').style.display = 'none';
-  document.getElementById('techChatBtn').classList.remove('active');
+// ── Tech chat (removed - moved to sidebar tab) ───────────────
+function sendTechMsg() {} // shim por compatibilidad
+
+// ── Técnicos tab ─────────────────────────────────────────────
+const TECNICOS_DATA = [
+  // Chats individuales
+  { id: 'tec-carlos',  type: 'dm',    name: 'Carlos R.',    av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', online: true,  lastMsg: '¿Alguien tiene acceso al servidor de prod?', time: '14:28', unread: 2 },
+  { id: 'tec-ana',     type: 'dm',    name: 'Ana P.',       av: 'AP', avColor: '#92400e', avBg: '#fef3c7', online: true,  lastMsg: 'Sí, lo reviso ahora. Dame 2 minutos.',       time: '14:29', unread: 0 },
+  { id: 'tec-jorge',   type: 'dm',    name: 'Jorge M.',     av: 'JM', avColor: '#065f46', avBg: '#d1fae5', online: false, lastMsg: 'El ticket #4821 ya está cerrado.',           time: '13:55', unread: 0 },
+  { id: 'tec-sara',    type: 'dm',    name: 'Sara V.',      av: 'SV', avColor: '#9d174d', avBg: '#fce7f3', online: true,  lastMsg: 'Paso la documentación esta tarde.',          time: '13:10', unread: 1 },
+  // Grupos / canales
+  { id: 'tec-infra',   type: 'group', name: '🖥️ Infraestructura', av: 'INF', avColor: '#1d4ed8', avBg: '#dbeafe', online: null, lastMsg: 'Carlos: Reiniciado el nodo 3.',       time: '14:31', unread: 5 },
+  { id: 'tec-dev',     type: 'group', name: '👨‍💻 Desarrollo',      av: 'DEV', avColor: '#065f46', avBg: '#d1fae5', online: null, lastMsg: 'Ana: Deploy en staging listo.',       time: '14:20', unread: 0 },
+  { id: 'tec-soporte', type: 'group', name: '🎧 Soporte N2',       av: 'N2',  avColor: '#7c3aed', avBg: '#ede9fe', online: null, lastMsg: 'Jorge: Escalado el caso de Elena.',   time: '13:48', unread: 3 },
+  { id: 'tec-alertas', type: 'group', name: '🚨 Alertas Sistema',  av: 'ALT', avColor: '#b91c1c', avBg: '#fee2e2', online: null, lastMsg: 'Sistema: CPU > 90% en prod-02.',      time: '12:30', unread: 0 },
+];
+
+const TECNICOS_MESSAGES = {
+  'tec-carlos':  [
+    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: '¿Alguien tiene acceso al servidor de prod para revisar los logs del error 502?' },
+    { role: 'agent', text: 'Sí, dame un momento. ¿Qué rango horario te interesa?' },
+    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: 'Desde las 13:00 hasta ahora.' },
+  ],
+  'tec-ana': [
+    { role: 'other', name: 'Ana P.', av: 'AP', avColor: '#92400e', avBg: '#fef3c7', text: 'Sí, lo reviso ahora. Dame 2 minutos.' },
+    { role: 'agent', text: 'Perfecto, avísame cuando lo tengas.' },
+  ],
+  'tec-jorge': [
+    { role: 'other', name: 'Jorge M.', av: 'JM', avColor: '#065f46', avBg: '#d1fae5', text: 'El ticket #4821 ya está cerrado. Lo he marcado como resuelto.' },
+    { role: 'agent', text: 'Genial, gracias Jorge.' },
+  ],
+  'tec-sara': [
+    { role: 'agent', text: 'Sara, ¿tienes la doc del proceso de escalado a N2?' },
+    { role: 'other', name: 'Sara V.', av: 'SV', avColor: '#9d174d', avBg: '#fce7f3', text: 'Paso la documentación esta tarde.' },
+  ],
+  'tec-infra': [
+    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: '¿Alguien tiene acceso al servidor de prod?' },
+    { role: 'other', name: 'Ana P.', av: 'AP', avColor: '#92400e', avBg: '#fef3c7', text: 'Sí, lo reviso ahora.' },
+    { role: 'agent', text: 'Ya está escalado el ticket #4821, acabo de notificar a infra.' },
+    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: 'Reiniciado el nodo 3. Todo OK.' },
+  ],
+  'tec-dev': [
+    { role: 'other', name: 'Ana P.', av: 'AP', avColor: '#92400e', avBg: '#fef3c7', text: 'Deploy en staging listo. Podéis probar.' },
+    { role: 'agent', text: 'Lo reviso ahora mismo.' },
+  ],
+  'tec-soporte': [
+    { role: 'other', name: 'Jorge M.', av: 'JM', avColor: '#065f46', avBg: '#d1fae5', text: 'Escalado el caso de Elena Castro. Error de acceso persistente.' },
+    { role: 'agent', text: 'Recibido, lo tomo yo.' },
+  ],
+  'tec-alertas': [
+    { role: 'other', name: 'Sistema', av: '⚠', avColor: '#b91c1c', avBg: '#fee2e2', text: 'CPU > 90% en prod-02. Revisar carga.' },
+  ],
+};
+
+let tecnicosFilter = 'all'; // 'all' | 'tecnicos'
+
+function renderTecnicosList() {
+  const list = document.getElementById('convList');
+  const dms    = TECNICOS_DATA.filter(t => t.type === 'dm');
+  const groups = TECNICOS_DATA.filter(t => t.type === 'group');
+
+  list.innerHTML = `
+    <div class="tec-section-label">Mensajes directos</div>
+    ${dms.map(t => tecnicoItem(t)).join('')}
+    <div class="tec-section-label" style="margin-top:6px">Canales</div>
+    ${groups.map(t => tecnicoItem(t)).join('')}
+  `;
 }
-function sendTechMsg() {
-  const input = document.getElementById('techChatInput');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  const msgs = document.getElementById('techChatMessages');
-  const div = document.createElement('div');
-  div.className = 'tech-msg tech-msg-mine';
-  div.innerHTML = `<div class="tech-msg-body"><div class="tech-msg-bubble mine">${escHtml(text)}</div><div class="tech-msg-time">ahora</div></div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+
+function tecnicoItem(t) {
+  const onlineDot = t.type === 'dm'
+    ? `<span class="tec-online-dot ${t.online ? 'online' : 'offline'}"></span>`
+    : '';
+  const unreadBadge = t.unread > 0
+    ? `<span class="tec-unread">${t.unread}</span>`
+    : '';
+  return `
+    <div class="conv-item tec-item ${openPanels.includes(t.id) ? 'active' : ''}" onclick="openTecPanel('${t.id}')">
+      <div class="conv-top">
+        <div class="conv-avatar" style="background:${t.avBg};color:${t.avColor};position:relative;font-size:10px">
+          ${t.av}${onlineDot}
+        </div>
+        <div class="conv-info">
+          <div class="d-flex align-items-center justify-content-between gap-1">
+            <div class="conv-name">${escHtml(t.name)}</div>
+            <div class="conv-time d-flex align-items-center gap-1">${t.time}${unreadBadge}</div>
+          </div>
+          <div class="conv-preview">${escHtml(t.lastMsg)}</div>
+        </div>
+      </div>
+    </div>`;
 }
-document.getElementById('techChatInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') sendTechMsg();
-});
+
+function openTecPanel(tecId) {
+  if (openPanels.includes(tecId)) return;
+  if (openPanels.length >= MAX_PANELS) return;
+  const tec = TECNICOS_DATA.find(t => t.id === tecId);
+  if (!tec) return;
+  openPanels.push(tecId);
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('chatPanels').style.display = 'flex';
+  renderPanels();
+  refreshSidebarList();
+}
+
+function renderTecPanel(tecId) {
+  const tec  = TECNICOS_DATA.find(t => t.id === tecId);
+  const msgs = (TECNICOS_MESSAGES[tecId] || []).map(m => {
+    if (m.role === 'agent') {
+      return `<div class="msg-row agent">
+        <div class="msg-avatar av-agent">Tú</div>
+        <div><div class="msg-bubble">${escHtml(m.text)}</div>
+        <div class="msg-meta">Tú · ahora</div></div>
+      </div>`;
+    } else {
+      return `<div class="msg-row user">
+        <div class="msg-avatar" style="background:${m.avBg};color:${m.avColor};font-size:10px">${m.av}</div>
+        <div><div class="msg-bubble user-bubble">${escHtml(m.text)}</div>
+        <div class="msg-meta">${escHtml(m.name)} · ahora</div></div>
+      </div>`;
+    }
+  }).join('');
+
+  const isGroup = tec.type === 'group';
+  const subLine = isGroup
+    ? `<span style="color:var(--text-muted);font-size:10px">${TECNICOS_DATA.filter(x=>x.type==='dm'&&x.online).length} miembros activos</span>`
+    : `<span class="tec-online-dot ${tec.online?'online':'offline'}" style="margin-right:3px"></span><span style="color:var(--text-muted);font-size:10px">${tec.online?'En línea':'Desconectado'}</span>`;
+
+  return `
+  <div class="chat-panel" id="panel-${tecId}">
+    <div class="chat-header d-flex align-items-center justify-content-between gap-2">
+      <div class="chat-header-left d-flex align-items-center gap-2 flex-shrink-0">
+        <div class="conv-avatar" style="background:${tec.avBg};color:${tec.avColor};font-size:10px">${tec.av}</div>
+        <div>
+          <div class="chat-user-name">${escHtml(tec.name)}</div>
+          <div class="chat-user-sub d-flex align-items-center gap-1">${subLine}</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-1 flex-shrink-0">
+        <button class="panel-close-btn" title="Cerrar panel" onclick="closeChatPanel('${tecId}')">
+          <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M2 2l10 10M12 2L2 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="messages-area">${msgs}</div>
+    <div class="input-area">
+      <div class="input-row d-flex align-items-end gap-2">
+        <textarea class="msg-input" id="msgInput-${tecId}" placeholder="Escribe un mensaje..." rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPanelMsg(this,'${tecId}')}"></textarea>
+        <button class="send-btn" onclick="sendPanelMsg(document.getElementById('msgInput-${tecId}'),'${tecId}')">
+          <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
 
 // ── Private zone ─────────────────────────────────────────────
 document.getElementById('privateZoneBtn').addEventListener('click', () => {
@@ -493,380 +636,12 @@ function openConvFromZone(id) {
 
 // ── Multi-panel demo ─────────────────────────────────────────
 const DEMO_CONVS = [
-  { id: 'conv1', name: 'Juan Martínez',  av: 'JM', avClass: 'av-web',   channel: 'web',      status: 'active',  topic: 'Error en login',   derived: null },
-  { id: 'conv2', name: 'Lucía García',   av: 'LG', avClass: 'av-wa',    channel: 'whatsapp', status: 'pending', topic: 'Facturación',      derived: 'Ana P.' },
-  { id: 'conv3', name: 'Mario Ruiz',     av: 'MR', avClass: 'av-teams', channel: 'teams',    status: 'active',  topic: 'Integración API',  derived: null },
-  { id: 'conv4', name: 'Elena Castro',   av: 'EC', avClass: 'av-web',   channel: 'web',      status: 'waiting', topic: 'Acceso bloqueado', derived: null },
-  { id: 'conv5', name: 'Paco Jiménez',   av: 'PJ', avClass: 'av-wa',    channel: 'whatsapp', status: 'pending', topic: 'Devolución',       derived: 'Carlos R.' },
+  { id: 'conv1', name: 'Juan Pérez', av: 'JP', avClass: 'av-user', channel: 'whatsapp', status: 'active', topic: 'Error de acceso', updatedAt: new Date().toISOString(), unread: false },
+  { id: 'conv2', name: 'Lucía Gómez', av: 'LG', avClass: 'av-user', channel: 'web', status: 'pending', topic: 'Doble cobro', updatedAt: new Date(Date.now() - 1000 * 60 * 3).toISOString(), unread: true },
+  { id: 'conv3', name: 'Mario Tech', av: 'MT', avClass: 'av-user', channel: 'teams', status: 'active', topic: 'API no responde', updatedAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(), derived: 'Agente María' },
+  { id: 'conv4', name: 'Ana Ruiz', av: 'AR', avClass: 'av-user', channel: 'whatsapp', status: 'waiting', topic: 'Cuenta bloqueada', updatedAt: new Date(Date.now() - 1000 * 60 * 25).toISOString() },
+  { id: 'conv5', name: 'Paco Ramírez', av: 'PR', avClass: 'av-user', channel: 'web' }
 ];
-
-const STATUS_LABEL = { pending: 'Pendiente', active: 'Activo', waiting: 'Esperando', resolved: 'Resuelto' };
-const STATUS_CLASS  = { pending: 'badge-pending', active: 'badge-active', waiting: 'badge-waiting', resolved: 'badge-resolved' };
-const CHANNEL_LABEL = { whatsapp: 'WhatsApp', teams: 'Teams', web: 'Web Chat' };
-const CHANNEL_CLASS = { whatsapp: 'ch-badge-wa', teams: 'ch-badge-teams', web: 'ch-badge-web' };
-
-const MAX_PANELS = 4;
-let openPanels = []; // array of convId strings
-
-function renderConvList() {
-  const list = document.getElementById('convList');
-  list.innerHTML = DEMO_CONVS.map(c => `
-    <div class="conv-item ${openPanels.includes(c.id) ? 'active' : ''}" onclick="openChatPanel('${c.id}')">
-      <div class="conv-top">
-        <div class="conv-avatar ${c.avClass}">${c.av}</div>
-        <div class="conv-info">
-          <div class="conv-name">${escHtml(c.name)}</div>
-          <div class="conv-topic">${escHtml(c.topic)}</div>
-        </div>
-      </div>
-      <div class="conv-footer">
-        ${chBadge}
-        <span class="conv-badge ${getBadgeClass(c.status)}">${getStatusLabel(c.status)}</span>
-        <span class="conv-time">${formatTime(c.updatedAt)}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function openChatPanel(convId) {
-  if (openPanels.includes(convId)) return; // ya abierto
-  if (openPanels.length >= MAX_PANELS) return; // máximo 4
-  const conv = DEMO_CONVS.find(c => c.id === convId);
-  if (!conv) return;
-
-  openPanels.push(convId);
-  renderChatPanels();
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('chatPanels').style.display = 'flex';
-  renderPanels();
-  renderConvList();
-}
-
-function closeChatPanel(convId) {
-  openPanels = openPanels.filter(id => id !== convId);
-  if (openPanels.length === 0) {
-    document.getElementById('emptyState').style.display = 'flex';
-    document.getElementById('chatPanels').style.display = 'none';
-  }
-  renderConvList();
-}
-
-function renderChatPanels() {
-  const container = document.getElementById('chatPanels');
-  
-  // CAMBIO: Grid responsive basado en número de chats abiertos
-  const panelCount = openPanels.length;
-  if (panelCount === 1) {
-    container.style.gridTemplateColumns = '1fr';
-  } else if (panelCount === 2) {
-    container.style.gridTemplateColumns = '1fr 1fr';
-  } else if (panelCount === 3) {
-    container.style.gridTemplateColumns = 'repeat(3, 1fr)';
-  } else if (panelCount === 4) {
-    container.style.gridTemplateColumns = '1fr 1fr';
-  }
-  
-  container.innerHTML = openPanels.map(convId => {
-    // Técnicos panel
-    if (convId.startsWith('tec-')) return renderTecPanel(convId);
-
-    const conv = DEMO_CONVS.find(c => c.id === convId);
-    if (!conv) return '';
-    
-    const messages = DEMO_MESSAGES[convId] || [];
-    const pinnedMsgs = (pinnedMessages[convId] || []).map(msgId => messages[msgId]).filter(Boolean);
-    
-    return `
-    <div class="chat-panel" id="panel-${convId}">
-      <div class="panel-header">
-        <div class="d-flex align-items-center gap-2 flex-1 min-w-0">
-          <div class="conv-avatar ${conv.avClass}">${conv.av}</div>
-          <div class="flex-1 min-w-0">
-            <div class="panel-name">${escHtml(conv.name)}</div>
-            <div class="panel-topic">${escHtml(conv.topic)}</div>
-          </div>
-        </div>
-        <div class="d-flex align-items-center gap-1">
-          <span class="ch-badge ${getChBadgeClass(conv.channel)}">${getChLabel(conv.channel)}</span>
-          <button class="panel-close" onclick="closeChatPanel('${convId}')" title="Cerrar">
-            <svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M4 4l8 8M12 4l-8 8"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-      
-      ${pinnedMsgs.length > 0 ? `
-      <div class="pinned-messages-bar">
-        <div class="pinned-header">
-          <svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M8 2v6m-3-3l3-3 3 3M8 14v-6"/>
-          </svg>
-          <span>Mensajes fijados (${pinnedMsgs.length})</span>
-        </div>
-        ${pinnedMsgs.map((msg, idx) => `
-          <div class="pinned-msg-item">
-            <div class="pinned-msg-text">${escHtml(msg.text.substring(0, 60))}</div>
-            <button class="unpin-btn" onclick="unpinMessage('${convId}', ${messages.indexOf(msg)})" title="Dejar de fijar">
-              <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M4 4l8 8M12 4l-8 8"/>
-              </svg>
-            </button>
-          </div>
-        `).join('')}
-      </div>
-      ` : ''}
-      
-      <div class="messages-area" id="messages-${convId}">
-        ${messages.map((msg, idx) => {
-          const isPinned = (pinnedMessages[convId] || []).includes(idx);
-          return `
-          <div class="msg-row ${msg.role}" data-msg-idx="${idx}">
-            <div class="msg-avatar ${msg.role === 'agent' ? 'av-agent' : 'av-user'}">${msg.role === 'agent' ? 'Tú' : conv.av}</div>
-            <div class="flex-1">
-              <div class="msg-bubble-wrapper">
-                <div class="msg-bubble">${escHtml(msg.text)}</div>
-                <div class="msg-actions">
-                  <button class="msg-action-btn" onclick="togglePinMessage('${convId}', ${idx})" title="${isPinned ? 'Dejar de fijar' : 'Fijar mensaje'}">
-                    <svg viewBox="0 0 16 16" width="11" height="11" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.5">
-                      <path d="M8 2v6m-3-3l3-3 3 3M8 14v-6"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="msg-meta">
-                ${msg.role === 'agent' ? 'Tú' : conv.name} · ahora
-                ${msg.role === 'agent' && msg.delivered ? `
-                  <svg class="msg-check" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M3 8l3 3 7-7"/>
-                  </svg>
-                ` : ''}
-                ${msg.role === 'agent' && msg.read ? `
-                  <svg class="msg-check msg-check-read" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M1 8l3 3 7-7M5 8l3 3 7-7"/>
-                  </svg>
-                ` : ''}
-              </div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-      
-      <div class="panel-footer">
-        <div class="panel-actions">
-          <button class="action-btn" onclick="toggleQR('${convId}')" title="Respuestas rápidas">
-            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M3 6h10M3 10h6"/>
-            </svg>
-          </button>
-          <button class="action-btn" title="Adjuntar">
-            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M12 7v4a4 4 0 0 1-8 0V5a3 3 0 0 1 6 0v6a2 2 0 0 1-4 0V6"/>
-            </svg>
-          </button>
-          <div class="dropdown-wrap" id="qrWrap-${convId}">
-            <div class="dp-panel dp-qr-panel">
-              <div class="dp-qr-header">
-                <input class="dp-qr-search" placeholder="Buscar..." oninput="filterQR('${convId}', this.value)">
-              </div>
-              <div class="dp-qr-list" id="qrList-${convId}"></div>
-            </div>
-          </div>
-        </div>
-        <div class="input-row d-flex align-items-end gap-2">
-          <textarea class="msg-input" id="msgInput-${convId}" placeholder="Escribe un mensaje..." rows="1"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPanelMsg(this,'${convId}')}"></textarea>
-          <button class="send-btn" onclick="sendPanelMsg(document.getElementById('msgInput-${convId}'),'${convId}')">
-            <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── Quick Replies per panel ──────────────────────────────────
-const QUICK_REPLIES_DATA = [
-  { label: '👋 Saludo inicial',  text: 'Hola, soy el agente. ¿En qué puedo ayudarte?' },
-  { label: '🔍 Revisando caso',  text: 'Entiendo, déjame revisar tu caso un momento...' },
-  { label: '📋 Solicitar datos', text: '¿Podrías proporcionarme tu número de cuenta o pedido?' },
-  { label: '⏱ Espera',          text: 'Un momento, estoy consultando con el equipo...' },
-  { label: '✅ Cierre',          text: 'Gracias por tu paciencia. Hemos resuelto tu consulta. ¿Hay algo más?' },
-  { label: '📞 Llamada',         text: 'Si lo prefieres, podemos hablar por teléfono. ¿Te va bien ahora?' },
-  { label: '🔁 Seguimiento',     text: 'Voy a escalar tu caso al equipo técnico. Te contactaremos en breve.' },
-  { label: '📧 Email',           text: 'Te enviaremos un resumen por email con todos los detalles.' },
-];
-
-function renderQRList(convId, filter = '') {
-  const list = document.getElementById('qrList-' + convId);
-  if (!list) return;
-  const items = filter
-    ? QUICK_REPLIES_DATA.filter(q => q.label.toLowerCase().includes(filter.toLowerCase()) || q.text.toLowerCase().includes(filter.toLowerCase()))
-    : QUICK_REPLIES_DATA;
-  list.innerHTML = items.map(q => `
-    <button class="dp-qr-item" onclick="useQuickReply('${convId}', ${JSON.stringify(q.text).replace(/'/g, "&#39;")})">
-      <span class="dp-qr-label">${escHtml(q.label)}</span>
-      <span class="dp-qr-preview">${escHtml(q.text)}</span>
-    </button>`).join('');
-}
-
-function toggleQR(convId) {
-  const wrap = document.getElementById('qrWrap-' + convId);
-  const isOpen = wrap.classList.contains('open');
-  // Cerrar todos los demás
-  document.querySelectorAll('.dropdown-wrap.open').forEach(w => w.classList.remove('open'));
-  if (!isOpen) {
-    wrap.classList.add('open');
-    renderQRList(convId);
-  }
-}
-
-function filterQR(convId, value) {
-  renderQRList(convId, value);
-}
-
-function useQuickReply(convId, text) {
-  const input = document.getElementById('msgInput-' + convId);
-  if (input) {
-    input.value = text;
-    input.focus();
-  }
-  const wrap = document.getElementById('qrWrap-' + convId);
-  if (wrap) wrap.classList.remove('open');
-}
-
-// Cerrar dropdowns al hacer click fuera
-document.addEventListener('click', e => {
-  if (!e.target.closest('.dropdown-wrap')) {
-    document.querySelectorAll('.dropdown-wrap.open').forEach(w => w.classList.remove('open'));
-  }
-});
-
-// CAMBIO: Función mejorada para enviar mensajes con ticks de entrega
-function sendPanelMsg(textarea, convId) {
-  const text = textarea.value.trim();
-  if (!text) return;
-  textarea.value = '';
-  const panel = document.getElementById('panel-' + convId);
-  if (!panel) return;
-  
-  // Añadir mensaje al array
-  if (!DEMO_MESSAGES[convId]) DEMO_MESSAGES[convId] = [];
-  const newMsg = { role: 'agent', text: text, delivered: false, read: false };
-  DEMO_MESSAGES[convId].push(newMsg);
-  
-  // Simular entrega después de 500ms
-  setTimeout(() => {
-    newMsg.delivered = true;
-    renderChatPanels();
-  }, 500);
-  
-  // Simular lectura después de 2s
-  setTimeout(() => {
-    newMsg.read = true;
-    renderChatPanels();
-  }, 2000);
-  
-  renderChatPanels();
-  
-  // Scroll al final
-  const area = document.getElementById('messages-' + convId);
-  if (area) area.scrollTop = area.scrollHeight;
-}
-
-// CAMBIO: Funciones para fijar/desfijar mensajes
-function togglePinMessage(convId, msgIdx) {
-  if (!pinnedMessages[convId]) pinnedMessages[convId] = [];
-  const idx = pinnedMessages[convId].indexOf(msgIdx);
-  if (idx > -1) {
-    pinnedMessages[convId].splice(idx, 1);
-  } else {
-    pinnedMessages[convId].push(msgIdx);
-  }
-  renderChatPanels();
-}
-
-function unpinMessage(convId, msgIdx) {
-  if (!pinnedMessages[convId]) return;
-  const idx = pinnedMessages[convId].indexOf(msgIdx);
-  if (idx > -1) {
-    pinnedMessages[convId].splice(idx, 1);
-  }
-  renderChatPanels();
-}
-
-// compat shims — funciones que el app.js puede llamar
-function openChatTab(id) { openChatPanel(id); }
-function closeTab(id) { closeChatPanel(id); }
-function switchTab(id) {}
-function openNewChatTab() {
-  const unopen = DEMO_CONVS.filter(c => !openPanels.includes(c.id));
-  if (unopen.length > 0) openChatPanel(unopen[0].id);
-}
-function loadConvView(conv) {}
-function toggleNotesPanel() {}
-function openTransferModal() {}
-function openResolveModal() {}
-
-const DEMO_MESSAGES = {
-  conv1: [
-    { role: 'user', text: 'Hola, no puedo iniciar sesión en mi cuenta. Aparece un error 403.' },
-    { role: 'agent', text: '¡Hola Juan! Entiendo, voy a revisar tu cuenta ahora mismo. ¿Has intentado restablecer la contraseña?', delivered: true, read: true },
-    { role: 'user', text: 'Sí, lo intenté pero el email no llega.' },
-    { role: 'agent', text: 'Revisa la carpeta de spam. Si no aparece, puedo enviártelo a un email alternativo.', delivered: true, read: false },
-  ],
-  conv2: [
-    { role: 'user', text: 'Me han cobrado dos veces este mes.' },
-    { role: 'agent', text: 'Hola Lucía, lamento el inconveniente. Voy a verificar tu historial de pagos.', delivered: true, read: true },
-  ],
-  conv3: [
-    { role: 'user', text: 'La API de Teams no responde desde ayer.' },
-    { role: 'agent', text: 'Buenos días Mario. ¿Qué endpoint específicamente? ¿Tienes los logs de error?', delivered: true, read: true },
-    { role: 'user', text: 'El endpoint /messages, aquí los logs: ERROR 502 Bad Gateway.' },
-  ],
-  conv4: [
-    { role: 'user', text: 'Mi cuenta está bloqueada sin razón aparente.' },
-  ],
-  conv5: [
-    { role: 'user', text: 'Pedí una devolución hace 10 días y no tengo noticias.' },
-    { role: 'agent', text: 'Hola Paco, voy a revisar el estado de tu solicitud de devolución #REF-2891.', delivered: true, read: true },
-  ],
-  techconv1: [
-    { role: 'agent', text: 'Hola equipo, necesito ayuda con el caso de Juan Pérez. Error 403 persistente.', delivered: true, read: true },
-    { role: 'user', text: 'María: He visto casos similares hoy. Parece un problema con el SSO.' },
-    { role: 'user', text: 'Carlos: Confirmo, el equipo de infraestructura está trabajando en ello.' },
-  ],
-};
-
-function loadConvView(conv) {
-  // Legacy compat
-}
-
-function showToast(msg, type = 'info') {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// Init
-renderConvList();
-
-// ── Asistente toggle ─────────────────────────────────────────
-document.getElementById('kbToggleBtn').addEventListener('click', () => {
-  const panel = document.getElementById('kbPanel');
-  const btn   = document.getElementById('kbToggleBtn');
-  const resizeHandle = document.getElementById('resizeRight');
-  const isHidden = panel.classList.toggle('kb-hidden');
-  btn.classList.toggle('active', !isHidden);
-  if (resizeHandle) resizeHandle.style.display = isHidden ? 'none' : '';
-});
 </script>
 </body>
 </html>
