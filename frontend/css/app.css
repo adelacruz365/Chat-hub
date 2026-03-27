@@ -133,12 +133,12 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
 .search-input::placeholder { color: var(--text-3); }
 .search-input:focus { border-color: rgba(0,0,208,0.35); }
 
-.channel-tabs { display: flex; gap: 2px; padding: 0 10px 7px; }
+.channel-tabs { display: flex; gap: 2px; padding: 0 6px 7px; flex-wrap: wrap; }
 .ch-tab {
-  padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 500;
+  padding: 3px 7px; border-radius: 4px; font-size: 11px; font-weight: 500;
   cursor: pointer; border: 1px solid transparent;
   color: var(--text-2); background: transparent;
-  font-family: var(--font); transition: all 0.12s;
+  font-family: var(--font); transition: all 0.12s; white-space: nowrap;
 }
 .ch-tab.active { background: var(--electric); color: #fff; border-color: var(--electric); }
 .ch-tab:hover:not(.active) { background: var(--bg-hover); color: var(--text-1); }
@@ -815,92 +815,38 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
 .resolve-confirm-btn:hover { background: #15803d; }
 
 /* ── Tech chat panel ─────────────────────────────────────── */
-.tech-chat-panel {
-  position: fixed; bottom: 0; right: 80px;
-  width: 300px; height: 380px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-med);
-  border-bottom: none;
-  border-radius: 10px 10px 0 0;
-  box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
-  z-index: 800;
-  flex-direction: column;
-  overflow: hidden;
-  animation: slideUp 0.2s ease;
+/* ── Técnicos sidebar items ──────────────────────────────── */
+.tec-section-label {
+  padding: 8px 12px 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-3);
 }
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-.tech-chat-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px;
-  background: var(--electric);
-  flex-shrink: 0;
-}
-.tech-chat-title {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 12px; font-weight: 600; color: white;
-}
-.tech-chat-title svg { stroke: rgba(255,255,255,0.85); }
-.tech-chat-title .sp-badge {
-  background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.9);
-  border-color: rgba(255,255,255,0.2);
-}
-.tech-chat-online {
-  display: flex; align-items: center; gap: 6px;
-  padding: 5px 12px; font-size: 10px; color: var(--text-3);
-  background: var(--bg-card); border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.tech-online-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--green); box-shadow: 0 0 4px rgba(22,163,74,0.5);
-}
-.tech-chat-messages {
-  flex: 1; overflow-y: auto; padding: 10px 10px;
-  display: flex; flex-direction: column; gap: 10px;
-}
-.tech-msg { display: flex; gap: 7px; }
-.tech-msg-other { align-self: flex-start; }
-.tech-msg-mine  { align-self: flex-end; justify-content: flex-end; }
-.tech-msg-av {
-  width: 26px; height: 26px; border-radius: 50%;
-  font-size: 9px; font-weight: 700; flex-shrink: 0;
+.tec-item .conv-avatar {
+  position: relative;
+  width: 32px; height: 32px; border-radius: 50%;
+  font-size: 10px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
-.tech-msg-body { display: flex; flex-direction: column; gap: 2px; max-width: 200px; }
-.tech-msg-name { font-size: 10px; font-weight: 600; color: var(--text-2); padding-left: 2px; }
-.tech-msg-bubble {
-  background: var(--bg-card); border: 1px solid var(--border);
+.tec-online-dot {
+  position: absolute; bottom: 0; right: 0;
+  width: 8px; height: 8px; border-radius: 50%;
+  border: 1.5px solid var(--bg-panel);
+}
+.tec-online-dot.online  { background: var(--green); }
+.tec-online-dot.offline { background: var(--text-3); }
+.tec-unread {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; border-radius: 8px;
+  background: var(--magenta); color: white;
+  font-size: 9px; font-weight: 700; padding: 0 4px;
+}
+/* Bubbles from other users in tec panels */
+.msg-bubble.user-bubble {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 10px; border-bottom-left-radius: 3px;
-  padding: 6px 9px; font-size: 11px; line-height: 1.5; color: var(--text-1);
 }
-.tech-msg-bubble.mine {
-  background: var(--electric-dim); border-color: rgba(0,0,208,0.15);
-  border-bottom-left-radius: 10px; border-bottom-right-radius: 3px;
-}
-.tech-msg-time { font-size: 10px; color: var(--text-3); padding: 0 3px; }
-.tech-chat-input-area {
-  display: flex; gap: 6px; padding: 8px;
-  border-top: 1px solid var(--border); flex-shrink: 0;
-  background: var(--bg-panel);
-}
-.tech-chat-input {
-  flex: 1; background: var(--bg-card);
-  border: 1px solid var(--border-med); border-radius: 18px;
-  padding: 6px 11px; font-size: 11px; font-family: var(--font);
-  color: var(--text-1); outline: none;
-}
-.tech-chat-input:focus { border-color: rgba(0,0,208,0.4); }
-.tech-chat-input::placeholder { color: var(--text-3); }
-.tech-chat-send {
-  width: 30px; height: 30px; border-radius: 50%;
-  background: var(--electric); border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; transition: background 0.12s;
-}
-.tech-chat-send:hover { background: var(--magenta); }
 
 /* ── Private zone panel ──────────────────────────────────── */
 .private-zone-panel {

@@ -57,15 +57,6 @@
         <span class="ws-dot"></span>
       </div>
 
-      <!-- Botón Chat Interno Técnicos -->
-      <button class="hdr-btn" id="techChatBtn" title="Chat interno técnicos · Alt+T">
-        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
-        </svg>
-        <span>Técnicos</span>
-        <span class="hdr-badge" id="techChatBadge" style="display:none">2</span>
-      </button>
-
       <!-- Botón Zona Privada -->
       <button class="hdr-btn" id="privateZoneBtn" title="Zona privada · mis usuarios asignados">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -117,6 +108,7 @@
         <button class="ch-tab" data-filter="whatsapp">WA</button>
         <button class="ch-tab" data-filter="teams">Teams</button>
         <button class="ch-tab" data-filter="web">Web</button>
+        <button class="ch-tab" data-filter="tecnicos">Técnicos</button>
       </div>
 
       <div class="conv-list" id="convList">
@@ -362,58 +354,6 @@
   </div>
 </div>
 
-<!-- ═══ TECH CHAT PANEL ══════════════════════════════════════ -->
-<div class="tech-chat-panel" id="techChatPanel" style="display:none">
-  <div class="tech-chat-header">
-    <div class="tech-chat-title">
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M14 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3l3 3 3-3h3a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
-      </svg>
-      Chat Técnicos
-      <span class="sp-badge">PRIVADO</span>
-    </div>
-    <button class="sp-close-btn" onclick="closeTechChat()">
-      <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 3l10 10M13 3L3 13"/>
-      </svg>
-    </button>
-  </div>
-  <div class="tech-chat-online">
-    <span class="tech-online-dot"></span>
-    <span id="techOnlineCount">4 técnicos en línea</span>
-  </div>
-  <div class="tech-chat-messages" id="techChatMessages">
-    <div class="tech-msg tech-msg-other">
-      <div class="tech-msg-av" style="background:#ede9fe;color:#7c3aed">CR</div>
-      <div class="tech-msg-body">
-        <div class="tech-msg-name">Carlos R.</div>
-        <div class="tech-msg-bubble">¿Alguien tiene acceso al servidor de prod para revisar los logs del error 502?</div>
-        <div class="tech-msg-time">14:28</div>
-      </div>
-    </div>
-    <div class="tech-msg tech-msg-other">
-      <div class="tech-msg-av" style="background:#fef3c7;color:#92400e">AP</div>
-      <div class="tech-msg-body">
-        <div class="tech-msg-name">Ana P.</div>
-        <div class="tech-msg-bubble">Sí, lo reviso ahora. Dame 2 minutos.</div>
-        <div class="tech-msg-time">14:29</div>
-      </div>
-    </div>
-    <div class="tech-msg tech-msg-mine">
-      <div class="tech-msg-body">
-        <div class="tech-msg-bubble mine">Ya está escalado el ticket #4821, acabo de notificar a infra.</div>
-        <div class="tech-msg-time">14:31</div>
-      </div>
-    </div>
-  </div>
-  <div class="tech-chat-input-area">
-    <input class="tech-chat-input" id="techChatInput" placeholder="Mensaje al equipo técnico...">
-    <button class="tech-chat-send" onclick="sendTechMsg()">
-      <svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-    </button>
-  </div>
-</div>
-
 <!-- ═══ PRIVATE ZONE PANEL ══════════════════════════════════ -->
 <div class="overlay" id="privateZoneOverlay" style="display:none" onclick="closePrivateZone()"></div>
 <div class="private-zone-panel" id="privateZonePanel" style="display:none">
@@ -580,33 +520,165 @@ function toggleNotesPanel() {
   document.getElementById('notesBtn').classList.toggle('active', !isOpen);
 }
 
-// ── Tech chat ────────────────────────────────────────────────
-document.getElementById('techChatBtn').addEventListener('click', () => {
-  const panel = document.getElementById('techChatPanel');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'flex';
-  document.getElementById('techChatBtn').classList.toggle('active', !isOpen);
-  document.getElementById('techChatBadge').style.display = 'none';
-});
-function closeTechChat() {
-  document.getElementById('techChatPanel').style.display = 'none';
-  document.getElementById('techChatBtn').classList.remove('active');
+// ── Tech chat (removed - moved to sidebar tab) ───────────────
+function sendTechMsg() {} // shim por compatibilidad
+
+// ── Técnicos tab ─────────────────────────────────────────────
+const TECNICOS_DATA = [
+  // Chats individuales
+  { id: 'tec-carlos',  type: 'dm',    name: 'Carlos R.',    av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', online: true,  lastMsg: '¿Alguien tiene acceso al servidor de prod?', time: '14:28', unread: 2 },
+  { id: 'tec-ana',     type: 'dm',    name: 'Ana P.',       av: 'AP', avColor: '#92400e', avBg: '#fef3c7', online: true,  lastMsg: 'Sí, lo reviso ahora. Dame 2 minutos.',       time: '14:29', unread: 0 },
+  { id: 'tec-jorge',   type: 'dm',    name: 'Jorge M.',     av: 'JM', avColor: '#065f46', avBg: '#d1fae5', online: false, lastMsg: 'El ticket #4821 ya está cerrado.',           time: '13:55', unread: 0 },
+  { id: 'tec-sara',    type: 'dm',    name: 'Sara V.',      av: 'SV', avColor: '#9d174d', avBg: '#fce7f3', online: true,  lastMsg: 'Paso la documentación esta tarde.',           time: '13:10', unread: 1 },
+  // Grupos / canales
+  { id: 'tec-infra',   type: 'group', name: '🖥️ Infraestructura', av: 'INF', avColor: '#1d4ed8', avBg: '#dbeafe', online: null, lastMsg: 'Carlos: Reiniciado el nodo 3.',       time: '14:31', unread: 5 },
+  { id: 'tec-dev',     type: 'group', name: '👨‍💻 Desarrollo',      av: 'DEV', avColor: '#065f46', avBg: '#d1fae5', online: null, lastMsg: 'Ana: Deploy en staging listo.',       time: '14:20', unread: 0 },
+  { id: 'tec-soporte', type: 'group', name: '🎧 Soporte N2',       av: 'N2',  avColor: '#7c3aed', avBg: '#ede9fe', online: null, lastMsg: 'Jorge: Escalado el caso de Elena.',   time: '13:48', unread: 3 },
+  { id: 'tec-alertas', type: 'group', name: '🚨 Alertas Sistema',  av: 'ALT', avColor: '#b91c1c', avBg: '#fee2e2', online: null, lastMsg: 'Sistema: CPU > 90% en prod-02.',      time: '12:30', unread: 0 },
+];
+
+const TECNICOS_MESSAGES = {
+  'tec-carlos':  [
+    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: '¿Alguien tiene acceso al servidor de prod para revisar los logs del error 502?' },
+    { role: 'agent', text: 'Sí, dame un momento. ¿Qué rango horario te interesa?' },
+    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: 'Desde las 13:00 hasta ahora.' },
+  ],
+  'tec-ana': [
+    { role: 'other', name: 'Ana P.', av: 'AP', avColor: '#92400e', avBg: '#fef3c7', text: 'Sí, lo reviso ahora. Dame 2 minutos.' },
+    { role: 'agent', text: 'Perfecto, avísame cuando lo tengas.' },
+  ],
+  'tec-jorge': [
+    { role: 'other', name: 'Jorge M.', av: 'JM', avColor: '#065f46', avBg: '#d1fae5', text: 'El ticket #4821 ya está cerrado. Lo he marcado como resuelto.' },
+    { role: 'agent', text: 'Genial, gracias Jorge.' },
+  ],
+  'tec-sara': [
+    { role: 'agent', text: 'Sara, ¿tienes la doc del proceso de escalado a N2?' },
+    { role: 'other', name: 'Sara V.', av: 'SV', avColor: '#9d174d', avBg: '#fce7f3', text: 'Paso la documentación esta tarde.' },
+  ],
+  'tec-infra': [
+    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: '¿Alguien tiene acceso al servidor de prod?' },
+    { role: 'other', name: 'Ana P.', av: 'AP', avColor: '#92400e', avBg: '#fef3c7', text: 'Sí, lo reviso ahora.' },
+    { role: 'agent', text: 'Ya está escalado el ticket #4821, acabo de notificar a infra.' },
+    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: 'Reiniciado el nodo 3. Todo OK.' },
+  ],
+  'tec-dev': [
+    { role: 'other', name: 'Ana P.', av: 'AP', avColor: '#92400e', avBg: '#fef3c7', text: 'Deploy en staging listo. Podéis probar.' },
+    { role: 'agent', text: 'Lo reviso ahora mismo.' },
+  ],
+  'tec-soporte': [
+    { role: 'other', name: 'Jorge M.', av: 'JM', avColor: '#065f46', avBg: '#d1fae5', text: 'Escalado el caso de Elena Castro. Error de acceso persistente.' },
+    { role: 'agent', text: 'Recibido, lo tomo yo.' },
+  ],
+  'tec-alertas': [
+    { role: 'other', name: 'Sistema', av: '⚠', avColor: '#b91c1c', avBg: '#fee2e2', text: 'CPU > 90% en prod-02. Revisar carga.' },
+  ],
+};
+
+let tecnicosFilter = 'all'; // 'all' | 'tecnicos'
+
+function renderTecnicosList() {
+  const list = document.getElementById('convList');
+  const dms    = TECNICOS_DATA.filter(t => t.type === 'dm');
+  const groups = TECNICOS_DATA.filter(t => t.type === 'group');
+
+  list.innerHTML = `
+    <div class="tec-section-label">Mensajes directos</div>
+    ${dms.map(t => tecnicoItem(t)).join('')}
+    <div class="tec-section-label" style="margin-top:6px">Canales</div>
+    ${groups.map(t => tecnicoItem(t)).join('')}
+  `;
 }
-function sendTechMsg() {
-  const input = document.getElementById('techChatInput');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  const msgs = document.getElementById('techChatMessages');
-  const div = document.createElement('div');
-  div.className = 'tech-msg tech-msg-mine';
-  div.innerHTML = `<div class="tech-msg-body"><div class="tech-msg-bubble mine">${escHtml(text)}</div><div class="tech-msg-time">ahora</div></div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+
+function tecnicoItem(t) {
+  const onlineDot = t.type === 'dm'
+    ? `<span class="tec-online-dot ${t.online ? 'online' : 'offline'}"></span>`
+    : '';
+  const unreadBadge = t.unread > 0
+    ? `<span class="tec-unread">${t.unread}</span>`
+    : '';
+  return `
+    <div class="conv-item tec-item ${openPanels.includes(t.id) ? 'active' : ''}" onclick="openTecPanel('${t.id}')">
+      <div class="conv-top">
+        <div class="conv-avatar" style="background:${t.avBg};color:${t.avColor};position:relative;font-size:10px">
+          ${t.av}${onlineDot}
+        </div>
+        <div class="conv-info">
+          <div class="d-flex align-items-center justify-content-between gap-1">
+            <div class="conv-name">${escHtml(t.name)}</div>
+            <div class="conv-time d-flex align-items-center gap-1">${t.time}${unreadBadge}</div>
+          </div>
+          <div class="conv-preview">${escHtml(t.lastMsg)}</div>
+        </div>
+      </div>
+    </div>`;
 }
-document.getElementById('techChatInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') sendTechMsg();
-});
+
+function openTecPanel(tecId) {
+  if (openPanels.includes(tecId)) return;
+  if (openPanels.length >= MAX_PANELS) return;
+  const tec = TECNICOS_DATA.find(t => t.id === tecId);
+  if (!tec) return;
+  openPanels.push(tecId);
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('chatPanels').style.display = 'flex';
+  renderPanels();
+  refreshSidebarList();
+}
+
+function renderTecPanel(tecId) {
+  const tec  = TECNICOS_DATA.find(t => t.id === tecId);
+  const msgs = (TECNICOS_MESSAGES[tecId] || []).map(m => {
+    if (m.role === 'agent') {
+      return `<div class="msg-row agent">
+        <div class="msg-avatar av-agent">Tú</div>
+        <div><div class="msg-bubble">${escHtml(m.text)}</div>
+        <div class="msg-meta">Tú · ahora</div></div>
+      </div>`;
+    } else {
+      return `<div class="msg-row user">
+        <div class="msg-avatar" style="background:${m.avBg};color:${m.avColor};font-size:10px">${m.av}</div>
+        <div><div class="msg-bubble user-bubble">${escHtml(m.text)}</div>
+        <div class="msg-meta">${escHtml(m.name)} · ahora</div></div>
+      </div>`;
+    }
+  }).join('');
+
+  const isGroup = tec.type === 'group';
+  const subLine = isGroup
+    ? `<span style="color:var(--text-muted);font-size:10px">${TECNICOS_DATA.filter(x=>x.type==='dm'&&x.online).length} miembros activos</span>`
+    : `<span class="tec-online-dot ${tec.online?'online':'offline'}" style="margin-right:3px"></span><span style="color:var(--text-muted);font-size:10px">${tec.online?'En línea':'Desconectado'}</span>`;
+
+  return `
+  <div class="chat-panel" id="panel-${tecId}">
+    <div class="chat-header d-flex align-items-center justify-content-between gap-2">
+      <div class="chat-header-left d-flex align-items-center gap-2 flex-shrink-0">
+        <div class="conv-avatar" style="background:${tec.avBg};color:${tec.avColor};font-size:10px">${tec.av}</div>
+        <div>
+          <div class="chat-user-name">${escHtml(tec.name)}</div>
+          <div class="chat-user-sub d-flex align-items-center gap-1">${subLine}</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-1 flex-shrink-0">
+        <button class="panel-close-btn" title="Cerrar panel" onclick="closeChatPanel('${tecId}')">
+          <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M2 2l10 10M12 2L2 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="messages-area">${msgs}</div>
+    <div class="input-area">
+      <div class="input-row d-flex align-items-end gap-2">
+        <textarea class="msg-input" id="msgInput-${tecId}" placeholder="Escribe un mensaje..." rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPanelMsg(this,'${tecId}')}"></textarea>
+        <button class="send-btn" onclick="sendPanelMsg(document.getElementById('msgInput-${tecId}'),'${tecId}')">
+          <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
 
 // ── Private zone ─────────────────────────────────────────────
 document.getElementById('privateZoneBtn').addEventListener('click', () => {
@@ -641,10 +713,20 @@ const CHANNEL_CLASS = { whatsapp: 'ch-badge-wa', teams: 'ch-badge-teams', web: '
 
 const MAX_PANELS = 4;
 let openPanels = []; // array of convId strings
+let sidebarFilter = 'all'; // tab activo
 
 function renderConvList() {
   const list = document.getElementById('convList');
-  list.innerHTML = DEMO_CONVS.map(c => `
+  const filtered = sidebarFilter === 'all'
+    ? DEMO_CONVS
+    : DEMO_CONVS.filter(c => c.channel === sidebarFilter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding:24px 12px;text-align:center;color:var(--text-3);font-size:12px">Sin conversaciones en este canal</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(c => `
     <div class="conv-item ${openPanels.includes(c.id) ? 'active' : ''}" onclick="openChatPanel('${c.id}')">
       <div class="conv-top">
         <div class="conv-avatar ${c.avClass}">${c.av}</div>
@@ -666,9 +748,18 @@ function renderConvList() {
   `).join('');
 }
 
+// Función central para re-renderizar la lista respetando el tab activo
+function refreshSidebarList() {
+  if (sidebarFilter === 'tecnicos') {
+    renderTecnicosList();
+  } else {
+    renderConvList();
+  }
+}
+
 function openChatPanel(convId) {
-  if (openPanels.includes(convId)) return; // ya abierto
-  if (openPanels.length >= MAX_PANELS) return; // máximo 4
+  if (openPanels.includes(convId)) return;
+  if (openPanels.length >= MAX_PANELS) return;
   const conv = DEMO_CONVS.find(c => c.id === convId);
   if (!conv) return;
 
@@ -676,7 +767,7 @@ function openChatPanel(convId) {
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('chatPanels').style.display = 'flex';
   renderPanels();
-  renderConvList();
+  refreshSidebarList();
 }
 
 function closeChatPanel(convId) {
@@ -687,12 +778,15 @@ function closeChatPanel(convId) {
   } else {
     renderPanels();
   }
-  renderConvList();
+  refreshSidebarList();
 }
 
 function renderPanels() {
   const container = document.getElementById('chatPanels');
   container.innerHTML = openPanels.map(convId => {
+    // Técnicos panel
+    if (convId.startsWith('tec-')) return renderTecPanel(convId);
+
     const conv = DEMO_CONVS.find(c => c.id === convId);
     const msgs = (DEMO_MESSAGES[convId] || []).map(m => {
       const avLabel = m.role === 'agent' ? 'Tú' : conv.av;
@@ -935,6 +1029,19 @@ function escHtml(s) {
 }
 
 // Init
+document.getElementById('channelTabs').addEventListener('click', e => {
+  const btn = e.target.closest('.ch-tab');
+  if (!btn) return;
+  document.querySelectorAll('.ch-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  sidebarFilter = btn.dataset.filter;
+  if (sidebarFilter === 'tecnicos') {
+    renderTecnicosList();
+  } else {
+    renderConvList();
+  }
+});
+
 renderConvList();
 
 // ── Asistente toggle ─────────────────────────────────────────
