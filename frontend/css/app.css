@@ -1605,9 +1605,45 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
 }
 /* ── Técnicos sidebar tab ────────────────────────────────── */
 .tec-section-label {
-  padding: 8px 12px 4px;
+  padding: 8px 10px 4px 12px;
   font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--text-3);
+}
+.tec-section-label.collapsible {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 4px 6px 2px;
+  padding: 5px 8px;
+  transition: background 0.12s, color 0.12s;
+  user-select: none;
+}
+.tec-section-label.collapsible:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+.tec-section-label.collapsible span:first-child {
+  flex: 1;
+}
+.tec-section-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: var(--bg-hover);
+  border-radius: 8px;
+  padding: 1px 5px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.tec-chevron {
+  color: var(--text-3);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.tec-chevron.collapsed {
+  transform: rotate(-90deg);
 }
 .tec-item .conv-avatar {
   position: relative;

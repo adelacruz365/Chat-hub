@@ -576,6 +576,12 @@ const TECNICOS_MESSAGES = {
 };
 
 let tecnicosFilter = 'all'; // 'all' | 'tecnicos'
+let tecCollapsed = { dms: false, groups: false };
+
+function toggleTecSection(section) {
+  tecCollapsed[section] = !tecCollapsed[section];
+  renderTecnicosList();
+}
 
 function renderTecnicosList() {
   const list = document.getElementById('convList');
@@ -583,10 +589,18 @@ function renderTecnicosList() {
   const groups = TECNICOS_DATA.filter(t => t.type === 'group');
 
   list.innerHTML = `
-    <div class="tec-section-label">Mensajes directos</div>
-    ${dms.map(t => tecnicoItem(t)).join('')}
-    <div class="tec-section-label" style="margin-top:6px">Canales</div>
-    ${groups.map(t => tecnicoItem(t)).join('')}
+    <div class="tec-section-label collapsible" onclick="toggleTecSection('dms')">
+      <span>Mensajes directos</span>
+      <span class="tec-section-count">${dms.length}</span>
+      <svg class="tec-chevron ${tecCollapsed.dms ? 'collapsed' : ''}" viewBox="0 0 10 6" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 1l4 4 4-4"/></svg>
+    </div>
+    ${tecCollapsed.dms ? '' : dms.map(t => tecnicoItem(t)).join('')}
+    <div class="tec-section-label collapsible" onclick="toggleTecSection('groups')">
+      <span>Canales</span>
+      <span class="tec-section-count">${groups.length}</span>
+      <svg class="tec-chevron ${tecCollapsed.groups ? 'collapsed' : ''}" viewBox="0 0 10 6" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 1l4 4 4-4"/></svg>
+    </div>
+    ${tecCollapsed.groups ? '' : groups.map(t => tecnicoItem(t)).join('')}
   `;
 }
 
