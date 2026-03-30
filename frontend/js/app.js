@@ -283,52 +283,46 @@ function renderConvList() {
 
 // ─── Open Conversation ────────────────────────────────────────
 async function openConv(convId) {
+  window.conversationsDB = conversations;
   activeConvId = convId;
 
   const conv = conversations.find(c => c.id === convId);
 
-  // NUEVO: marcar como leído
+  // Marcar como leído
   if (conv && conv.messages) {
     lastReadMap.set(convId, conv.messages.length);
   }
 
-  clearConvNew(convId);
+  // Si existe esta función en tu JS, la mantenemos
+  if (typeof clearConvNew === 'function') {
+    clearConvNew(convId);
+  }
 
   if (!conv) return;
 
+  // Lógica de WebSocket y cambio de estado (¡Se mantiene intacta!)
   if (conv.status === 'pending' || conv.status === 'waiting') {
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    if (typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
         type: 'agent.take', conversationId: convId,
-        agentId: AGENT_ID, agentName: AGENT_NAME
+        agentId: typeof AGENT_ID !== 'undefined' ? AGENT_ID : 'agente-1', 
+        agentName: typeof AGENT_NAME !== 'undefined' ? AGENT_NAME : 'Agente'
       }));
     }
     conv.status = 'active';
-    conv.assignedTo = AGENT_ID;
+    conv.assignedTo = typeof AGENT_ID !== 'undefined' ? AGENT_ID : 'agente-1';
   }
 
-  emptyState.style.display = 'none';
-  chatView.style.display   = 'flex';
-  chatView.style.flexDirection = 'column';
-  chatView.style.flex = '1';
-  chatView.style.overflow = 'hidden';
-
-  const av = $('chatAvatar');
-  av.textContent = getInitials(conv.userName);
-  av.className   = 'conv-avatar ' + getAvClass(conv.channel);
-  $('chatUserName').textContent = conv.userName;
-  $('chatChannel').textContent  = getChLabel(conv.channel);
-  $('chatTopic').textContent    = conv.topic || '';
-
-  messagesArea.innerHTML = '';
-  (conv.messages || []).forEach(m => appendMessage(m, false));
-  setTimeout(() => { messagesArea.scrollTop = messagesArea.scrollHeight; }, 50);
-
-  updateDropdownInfo();
+  // Actualizamos la barra lateral para que se marque en gris (seleccionado)
   renderConvList();
-  msgInput.focus();
-}
 
+  // Llamamos al NUEVO sistema de paneles que está en tu HTML
+  if (typeof openChatPanel === 'function') {
+    openChatPanel(convId);
+  } else {
+    console.error("No se encontró la función openChatPanel. Revisa el HTML.");
+  }
+}
 // ─── Append Message ───────────────────────────────────────────
 function appendMessage(msg, scroll = true) {
   if (msg.role === 'system') {

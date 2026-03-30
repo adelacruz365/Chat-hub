@@ -357,284 +357,10 @@
 
 <script>
 // ── Demo / UI interactions for new features ─────────────────
+const MAX_PANELS = 4;
+let openPanels = []; // Almacenará los IDs de las conversaciones abiertas
+let searchQuery = '';
 
-const AGENTS = [
-  { id: 'a1', name: 'Carlos Rodríguez', initials: 'CR', color: '#7c3aed', bg: '#ede9fe', dept: 'Técnico N2', available: true },
-  { id: 'a2', name: 'Ana Pereira',       initials: 'AP', color: '#92400e', bg: '#fef3c7', dept: 'Soporte',    available: true },
-  { id: 'a3', name: 'Diego Morales',     initials: 'DM', color: '#15803d', bg: '#dcfce7', dept: 'Billing',    available: true },
-  { id: 'a4', name: 'Sofía Vidal',       initials: 'SV', color: '#0369a1', bg: '#e0f2fe', dept: 'Sales',      available: false },
-  { id: 'a5', name: 'Tomás Herrera',     initials: 'TH', color: '#9d174d', bg: '#fce7f3', dept: 'Técnico N1', available: true },
-];
-
-let selectedTransferAgent = null;
-
-// Render transfer agent list
-function renderTransferAgents() {
-  const list = document.getElementById('transferAgentsList');
-  list.innerHTML = AGENTS.filter(a => a.available).map(a => `
-    <div class="transfer-agent-item" data-id="${a.id}" onclick="selectTransferAgent('${a.id}')">
-      <div class="transfer-agent-av" style="background:${a.bg};color:${a.color}">${a.initials}</div>
-      <div class="transfer-agent-info">
-        <div class="transfer-agent-name">${a.name}</div>
-        <div class="transfer-agent-dept">${a.dept}</div>
-      </div>
-      <span class="transfer-agent-status available">●</span>
-    </div>
-  `).join('');
-}
-
-function selectTransferAgent(id) {
-  selectedTransferAgent = id;
-  const agent = AGENTS.find(a => a.id === id);
-  document.getElementById('transferTargetName').textContent = agent.name;
-  document.getElementById('transferQueueSelect').value = '';
-  document.querySelectorAll('.transfer-agent-item').forEach(el => el.classList.remove('selected'));
-  document.querySelector(`.transfer-agent-item[data-id="${id}"]`).classList.add('selected');
-}
-
-function openTransferModal() {
-  renderTransferAgents();
-  selectedTransferAgent = null;
-  document.getElementById('transferTargetName').textContent = 'Selecciona un agente o cola';
-  document.getElementById('transferNote').value = '';
-  document.getElementById('transferQueueSelect').value = '';
-  document.querySelectorAll('.transfer-agent-item').forEach(el => el.classList.remove('selected'));
-  document.getElementById('transferOverlay').style.display = 'block';
-  document.getElementById('transferPopup').style.display = 'flex';
-  requestAnimationFrame(() => document.getElementById('transferPopup').classList.add('open'));
-}
-
-function closeTransferModal() {
-  document.getElementById('transferPopup').classList.remove('open');
-  setTimeout(() => {
-    document.getElementById('transferOverlay').style.display = 'none';
-    document.getElementById('transferPopup').style.display = 'none';
-  }, 200);
-}
-
-document.getElementById('confirmTransfer').addEventListener('click', () => {
-  const agent = AGENTS.find(a => a.id === selectedTransferAgent);
-  const queue = document.getElementById('transferQueueSelect').value;
-  const dest = agent ? agent.name : (queue || null);
-  if (!dest) { alert('Selecciona un agente o una cola'); return; }
-  closeTransferModal();
-  // Show derived badge
-  document.getElementById('derivedBadge').style.display = 'inline-flex';
-  document.getElementById('derivedAgentName').textContent = dest;
-  showToast(`Conversación transferida a ${dest}`, 'success');
-});
-
-// ── Resolve modal ────────────────────────────────────────────
-function openResolveModal() {
-  document.getElementById('resolveOverlay').style.display = 'block';
-  document.getElementById('resolvePopup').style.display = 'flex';
-  requestAnimationFrame(() => document.getElementById('resolvePopup').classList.add('open'));
-}
-function closeResolveModal() {
-  document.getElementById('resolvePopup').classList.remove('open');
-  setTimeout(() => {
-    document.getElementById('resolveOverlay').style.display = 'none';
-    document.getElementById('resolvePopup').style.display = 'none';
-  }, 220);
-}
-function confirmResolve() {
-  closeResolveModal();
-  showToast('✅ Incidencia marcada como resuelta', 'success');
-}
-
-// Resolve reason buttons
-document.querySelectorAll('.resolve-reason').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.resolve-reason').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
-
-// ── Notes panel ──────────────────────────────────────────────
-function toggleNotesPanel() {
-  const panel = document.getElementById('notesPanel');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'flex';
-  document.getElementById('notesBtn').classList.toggle('active', !isOpen);
-}
-
-// ── Tech chat (removed - moved to sidebar tab) ───────────────
-function sendTechMsg() {} // shim por compatibilidad
-
-// ── Técnicos tab ─────────────────────────────────────────────
-const TECNICOS_DATA = [
-  // Chats individuales
-  { id: 'tec-carlos',  type: 'dm',    name: 'Carlos R.',    av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', online: true,  lastMsg: '¿Alguien tiene acceso al servidor de prod?', time: '14:28', unread: 2 },
-  { id: 'tec-ana',     type: 'dm',    name: 'Ana P.',       av: 'AP', avColor: '#92400e', avBg: '#fef3c7', online: true,  lastMsg: 'Sí, lo reviso ahora. Dame 2 minutos.',       time: '14:29', unread: 0 },
-  { id: 'tec-jorge',   type: 'dm',    name: 'Jorge M.',     av: 'JM', avColor: '#065f46', avBg: '#d1fae5', online: false, lastMsg: 'El ticket #4821 ya está cerrado.',           time: '13:55', unread: 0 },
-  { id: 'tec-sara',    type: 'dm',    name: 'Sara V.',      av: 'SV', avColor: '#9d174d', avBg: '#fce7f3', online: true,  lastMsg: 'Paso la documentación esta tarde.',          time: '13:10', unread: 1 },
-  // Grupos / canales
-  { id: 'tec-infra',   type: 'group', name: '🖥️ Infraestructura', av: 'INF', avColor: '#1d4ed8', avBg: '#dbeafe', online: null, lastMsg: 'Carlos: Reiniciado el nodo 3.',       time: '14:31', unread: 5 },
-  { id: 'tec-dev',     type: 'group', name: '👨‍💻 Desarrollo',      av: 'DEV', avColor: '#065f46', avBg: '#d1fae5', online: null, lastMsg: 'Ana: Deploy en staging listo.',       time: '14:20', unread: 0 },
-  { id: 'tec-soporte', type: 'group', name: '🎧 Soporte N2',       av: 'N2',  avColor: '#7c3aed', avBg: '#ede9fe', online: null, lastMsg: 'Jorge: Escalado el caso de Elena.',   time: '13:48', unread: 3 },
-  { id: 'tec-alertas', type: 'group', name: '🚨 Alertas Sistema',  av: 'ALT', avColor: '#b91c1c', avBg: '#fee2e2', online: null, lastMsg: 'Sistema: CPU > 90% en prod-02.',      time: '12:30', unread: 0 },
-];
-
-const TECNICOS_MESSAGES = {
-  'tec-carlos':  [
-    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: '¿Alguien tiene acceso al servidor de prod para revisar los logs del error 502?' },
-    { role: 'agent', text: 'Sí, dame un momento. ¿Qué rango horario te interesa?' },
-    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: 'Desde las 13:00 hasta ahora.' },
-  ],
-  'tec-ana': [
-    { role: 'other', name: 'Ana P.', av: 'AP', avColor: '#92400e', avBg: '#fef3c7', text: 'Sí, lo reviso ahora. Dame 2 minutos.' },
-    { role: 'agent', text: 'Perfecto, avísame cuando lo tengas.' },
-  ],
-  'tec-jorge': [
-    { role: 'other', name: 'Jorge M.', av: 'JM', avColor: '#065f46', avBg: '#d1fae5', text: 'El ticket #4821 ya está cerrado. Lo he marcado como resuelto.' },
-    { role: 'agent', text: 'Genial, gracias Jorge.' },
-  ],
-  'tec-sara': [
-    { role: 'agent', text: 'Sara, ¿tienes la doc del proceso de escalado a N2?' },
-    { role: 'other', name: 'Sara V.', av: 'SV', avColor: '#9d174d', avBg: '#fce7f3', text: 'Paso la documentación esta tarde.' },
-  ],
-  'tec-infra': [
-    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: '¿Alguien tiene acceso al servidor de prod?' },
-    { role: 'other', name: 'Ana P.', av: 'AP', avColor: '#92400e', avBg: '#fef3c7', text: 'Sí, lo reviso ahora.' },
-    { role: 'agent', text: 'Ya está escalado el ticket #4821, acabo de notificar a infra.' },
-    { role: 'other', name: 'Carlos R.', av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', text: 'Reiniciado el nodo 3. Todo OK.' },
-  ],
-  'tec-dev': [
-    { role: 'other', name: 'Ana P.', av: 'AP', avColor: '#92400e', avBg: '#fef3c7', text: 'Deploy en staging listo. Podéis probar.' },
-    { role: 'agent', text: 'Lo reviso ahora mismo.' },
-  ],
-  'tec-soporte': [
-    { role: 'other', name: 'Jorge M.', av: 'JM', avColor: '#065f46', avBg: '#d1fae5', text: 'Escalado el caso de Elena Castro. Error de acceso persistente.' },
-    { role: 'agent', text: 'Recibido, lo tomo yo.' },
-  ],
-  'tec-alertas': [
-    { role: 'other', name: 'Sistema', av: '⚠', avColor: '#b91c1c', avBg: '#fee2e2', text: 'CPU > 90% en prod-02. Revisar carga.' },
-  ],
-};
-
-let tecnicosFilter = 'all'; // 'all' | 'tecnicos'
-
-function renderTecnicosList() {
-  const list = document.getElementById('convList');
-  const dms    = TECNICOS_DATA.filter(t => t.type === 'dm');
-  const groups = TECNICOS_DATA.filter(t => t.type === 'group');
-
-  list.innerHTML = `
-    <div class="tec-section-label">Mensajes directos</div>
-    ${dms.map(t => tecnicoItem(t)).join('')}
-    <div class="tec-section-label" style="margin-top:6px">Canales</div>
-    ${groups.map(t => tecnicoItem(t)).join('')}
-  `;
-}
-
-function tecnicoItem(t) {
-  const onlineDot = t.type === 'dm'
-    ? `<span class="tec-online-dot ${t.online ? 'online' : 'offline'}"></span>`
-    : '';
-  const unreadBadge = t.unread > 0
-    ? `<span class="tec-unread">${t.unread}</span>`
-    : '';
-  return `
-    <div class="conv-item tec-item ${openPanels.includes(t.id) ? 'active' : ''}" onclick="openTecPanel('${t.id}')">
-      <div class="conv-top">
-        <div class="conv-avatar" style="background:${t.avBg};color:${t.avColor};position:relative;font-size:10px">
-          ${t.av}${onlineDot}
-        </div>
-        <div class="conv-info">
-          <div class="d-flex align-items-center justify-content-between gap-1">
-            <div class="conv-name">${escHtml(t.name)}</div>
-            <div class="conv-time d-flex align-items-center gap-1">${t.time}${unreadBadge}</div>
-          </div>
-          <div class="conv-preview">${escHtml(t.lastMsg)}</div>
-        </div>
-      </div>
-    </div>`;
-}
-
-function openTecPanel(tecId) {
-  if (openPanels.includes(tecId)) return;
-  if (openPanels.length >= MAX_PANELS) return;
-  const tec = TECNICOS_DATA.find(t => t.id === tecId);
-  if (!tec) return;
-  openPanels.push(tecId);
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('chatPanels').style.display = 'flex';
-  renderPanels();
-  refreshSidebarList();
-}
-
-function renderTecPanel(tecId) {
-  const tec  = TECNICOS_DATA.find(t => t.id === tecId);
-  const msgs = (TECNICOS_MESSAGES[tecId] || []).map(m => {
-    if (m.role === 'agent') {
-      return `<div class="msg-row agent">
-        <div class="msg-avatar av-agent">Tú</div>
-        <div><div class="msg-bubble">${escHtml(m.text)}</div>
-        <div class="msg-meta">Tú · ahora</div></div>
-      </div>`;
-    } else {
-      return `<div class="msg-row user">
-        <div class="msg-avatar" style="background:${m.avBg};color:${m.avColor};font-size:10px">${m.av}</div>
-        <div><div class="msg-bubble user-bubble">${escHtml(m.text)}</div>
-        <div class="msg-meta">${escHtml(m.name)} · ahora</div></div>
-      </div>`;
-    }
-  }).join('');
-
-  const isGroup = tec.type === 'group';
-  const subLine = isGroup
-    ? `<span style="color:var(--text-muted);font-size:10px">${TECNICOS_DATA.filter(x=>x.type==='dm'&&x.online).length} miembros activos</span>`
-    : `<span class="tec-online-dot ${tec.online?'online':'offline'}" style="margin-right:3px"></span><span style="color:var(--text-muted);font-size:10px">${tec.online?'En línea':'Desconectado'}</span>`;
-
-  return `
-  <div class="chat-panel" id="panel-${tecId}">
-    <div class="chat-header d-flex align-items-center justify-content-between gap-2">
-      <div class="chat-header-left d-flex align-items-center gap-2 flex-shrink-0">
-        <div class="conv-avatar" style="background:${tec.avBg};color:${tec.avColor};font-size:10px">${tec.av}</div>
-        <div>
-          <div class="chat-user-name">${escHtml(tec.name)}</div>
-          <div class="chat-user-sub d-flex align-items-center gap-1">${subLine}</div>
-        </div>
-      </div>
-      <div class="d-flex align-items-center gap-1 flex-shrink-0">
-        <button class="panel-close-btn" title="Cerrar panel" onclick="closeChatPanel('${tecId}')">
-          <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M2 2l10 10M12 2L2 12"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <div class="messages-area">${msgs}</div>
-    <div class="input-area">
-      <div class="input-row d-flex align-items-end gap-2">
-        <textarea class="msg-input" id="msgInput-${tecId}" placeholder="Escribe un mensaje..." rows="1"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPanelMsg(this,'${tecId}')}"></textarea>
-        <button class="send-btn" onclick="sendPanelMsg(document.getElementById('msgInput-${tecId}'),'${tecId}')">
-          <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-        </button>
-      </div>
-    </div>
-  </div>`;
-}
-
-// ── Private zone ─────────────────────────────────────────────
-document.getElementById('privateZoneBtn').addEventListener('click', () => {
-  document.getElementById('privateZoneOverlay').style.display = 'block';
-  document.getElementById('privateZonePanel').style.display = 'flex';
-  requestAnimationFrame(() => document.getElementById('privateZonePanel').classList.add('open'));
-});
-function closePrivateZone() {
-  document.getElementById('privateZonePanel').classList.remove('open');
-  setTimeout(() => {
-    document.getElementById('privateZoneOverlay').style.display = 'none';
-    document.getElementById('privateZonePanel').style.display = 'none';
-  }, 220);
-}
-function openConvFromZone(id) {
-  closePrivateZone();
-}
-
-// ── Multi-panel demo ─────────────────────────────────────────
 const DEMO_CONVS = [
   { id: 'conv1', name: 'Juan Pérez', av: 'JP', avClass: 'av-user', channel: 'whatsapp', status: 'active', topic: 'Error de acceso', updatedAt: new Date().toISOString(), unread: false },
   { id: 'conv2', name: 'Lucía Gómez', av: 'LG', avClass: 'av-user', channel: 'web', status: 'pending', topic: 'Doble cobro', updatedAt: new Date(Date.now() - 1000 * 60 * 3).toISOString(), unread: true },
@@ -642,6 +368,206 @@ const DEMO_CONVS = [
   { id: 'conv4', name: 'Ana Ruiz', av: 'AR', avClass: 'av-user', channel: 'whatsapp', status: 'waiting', topic: 'Cuenta bloqueada', updatedAt: new Date(Date.now() - 1000 * 60 * 25).toISOString() },
   { id: 'conv5', name: 'Paco Ramírez', av: 'PR', avClass: 'av-user', channel: 'web' }
 ];
+
+const DEMO_MESSAGES = {
+  conv1: [{role: 'user', text: 'No puedo entrar a mi cuenta.'}],
+  conv2: [{role: 'user', text: 'Me han cobrado dos veces la factura.'}],
+  conv3: [{role: 'user', text: 'El endpoint da error 502.'}],
+  conv4: [{role: 'user', text: 'Mi cuenta está bloqueada.'}],
+  conv5: [{role: 'user', text: '¿Dónde está mi reembolso?'}]
+};
+
+// ── Helpers ──────────────────────────────────────────────────
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, function(m) {
+    return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m];
+  });
+}
+
+function getChBadgeClass(ch) {
+  return ch === 'whatsapp' ? 'ch-badge-wa' : ch === 'teams' ? 'ch-badge-teams' : 'ch-badge-web';
+}
+
+function getChLabel(ch) {
+  return { whatsapp: 'WhatsApp', teams: 'Teams', web: 'Web Chat' }[ch] || ch;
+}
+
+// ── Cargar vista de Paneles ──────────────────────────────────
+function openChatPanel(convId) {
+  if (openPanels.includes(convId)) return; // Ya está abierto
+  if (openPanels.length >= MAX_PANELS) {
+    showToast('Límite de paneles alcanzado. Cierra uno primero.', 'error');
+    return;
+  }
+  openPanels.push(convId);
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('chatPanels').style.display = 'flex';
+  
+  // Limpiamos la alerta de no leído si la hay
+  const conv = DEMO_CONVS.find(c => c.id === convId);
+  if (conv) conv.unread = false;
+
+  renderPanels();
+  refreshSidebarList();
+}
+
+function closeChatPanel(convId) {
+  openPanels = openPanels.filter(id => id !== convId);
+  if (openPanels.length === 0) {
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('chatPanels').style.display = 'none';
+  }
+  renderPanels();
+  refreshSidebarList();
+}
+
+function renderPanels() {
+  const container = document.getElementById('chatPanels');
+  const panelCount = openPanels.length;
+  
+  if (panelCount === 1) container.style.gridTemplateColumns = '1fr';
+  else if (panelCount === 2) container.style.gridTemplateColumns = '1fr 1fr';
+  else if (panelCount === 3) container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  else if (panelCount >= 4) container.style.gridTemplateColumns = '1fr 1fr';
+
+  container.innerHTML = openPanels.map(convId => {
+    // 1. Si es chat de técnicos, va por otro lado
+    if (convId.startsWith('tec-')) return renderTecPanel(convId);
+
+    // 2. Buscamos la conversación en la base de datos REAL de app.js
+    let conv = null;
+    if (window.conversationsDB) {
+        conv = window.conversationsDB.find(c => c.id === convId);
+    }
+    
+    // Si no existe, evitamos que el programa explote y no dibujamos el panel
+    if (!conv) return ''; 
+
+    // 3. Extraemos los datos EXACTOS como se llaman en tu app.js
+    const userName = conv.userName || 'Usuario';
+    const topic = conv.topic || 'Sin asunto';
+    const channel = conv.channel || 'web';
+    
+    // Generamos las iniciales como en tu sidebar
+    const initials = userName.substring(0, 2).toUpperCase();
+    let avClass = 'av-web';
+    if (channel === 'whatsapp') avClass = 'av-wa';
+    if (channel === 'teams') avClass = 'av-teams';
+
+    // 4. Extraemos los mensajes reales de la base de datos
+    const messages = conv.messages || [];
+
+    const msgsHtml = messages.map(msg => {
+      // Tu app.js puede guardar al agente como role='agent' o sender='agent'
+      const isAgent = msg.role === 'agent' || msg.sender === 'agent';
+      
+      return `
+      <div class="msg-row ${isAgent ? 'agent' : 'user'}">
+        <div class="msg-avatar ${isAgent ? 'av-agent' : 'av-user'}">${isAgent ? 'TÚ' : initials}</div>
+        <div>
+          <div class="msg-bubble ${isAgent ? '' : 'user-bubble'}">${escHtml(msg.text)}</div>
+          <div class="msg-meta">${isAgent ? 'Tú' : userName}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `
+    <div class="chat-panel" id="panel-${convId}">
+      <div class="chat-header d-flex align-items-center justify-content-between gap-2">
+        <div class="chat-header-left d-flex align-items-center gap-2 flex-shrink-0">
+          <div class="conv-avatar ${avClass}" style="font-size:10px">${initials}</div>
+          <div>
+            <div class="chat-user-name">${escHtml(userName)}</div>
+            <div class="chat-user-sub">${escHtml(topic)}</div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+          <span class="ch-badge ${channel === 'whatsapp' ? 'ch-badge-wa' : channel === 'teams' ? 'ch-badge-teams' : 'ch-badge-web'}">${channel}</span>
+          <button class="panel-close-btn" title="Cerrar panel" onclick="closeChatPanel('${convId}')">
+            <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M2 2l10 10M12 2L2 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="messages-area" id="messages-${convId}">${msgsHtml}</div>
+      <div class="input-area">
+        <div class="input-row d-flex align-items-end gap-2">
+          <textarea class="msg-input" id="msgInput-${convId}" placeholder="Escribe un mensaje..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPanelMsg(this,'${convId}')}"></textarea>
+          <button class="send-btn" onclick="sendPanelMsg(document.getElementById('msgInput-${convId}'),'${convId}')">
+            <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// NUEVA FUNCIÓN para poder enviar mensajes desde el nuevo panel y que se guarden
+function sendPanelMsg(textarea, convId) {
+  const text = textarea.value.trim();
+  if (!text) return;
+  textarea.value = '';
+  
+  if (convId.startsWith('tec-')) {
+    if (!TECNICOS_MESSAGES[convId]) TECNICOS_MESSAGES[convId] = [];
+    TECNICOS_MESSAGES[convId].push({ role: 'agent', text: text });
+  } else {
+    // Guardar en tu base de datos real
+    if (window.conversationsDB) {
+       const conv = window.conversationsDB.find(c => c.id === convId);
+       if (conv) {
+         if (!conv.messages) conv.messages = [];
+         // Insertamos el mensaje
+         conv.messages.push({ role: 'agent', text: text, sender: 'agent' });
+         
+         // Si tienes WebSocket activo, envíalo al servidor
+         if (typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'agent.message', conversationId: convId, text: text }));
+         }
+       }
+    }
+  }
+  
+  // Refrescamos visualmente para que aparezca
+  renderPanels();
+  const area = document.getElementById('messages-' + convId);
+  if (area) area.scrollTop = area.scrollHeight;
+}
+function refreshSidebarList() {
+  // Aquí puedes llamar a tu `renderConvList` si necesitas refrescar la lista izquierda para resaltar los chats activos
+}
+
+function sendPanelMsg(textarea, convId) {
+  const text = textarea.value.trim();
+  if (!text) return;
+  textarea.value = '';
+  
+  // Aquí insertamos visualmente el mensaje si es técnico o usuario
+  if (convId.startsWith('tec-')) {
+    if (!TECNICOS_MESSAGES[convId]) TECNICOS_MESSAGES[convId] = [];
+    TECNICOS_MESSAGES[convId].push({ role: 'agent', text: text });
+  } else {
+    if (!DEMO_MESSAGES[convId]) DEMO_MESSAGES[convId] = [];
+    DEMO_MESSAGES[convId].push({ role: 'agent', text: text });
+  }
+  
+  renderPanels();
+  const area = document.getElementById('messages-' + convId);
+  if (area) area.scrollTop = area.scrollHeight;
+}
+
+// Interacción del tab visual izquierdo (Todos, WA, Teams, Web)
+document.querySelectorAll('.ch-tab').forEach(tab => {
+  tab.addEventListener('click', (e) => {
+    document.querySelectorAll('.ch-tab').forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    // currentFilter = e.target.getAttribute('data-filter');
+    // Aquí puedes enlazar de nuevo a tu renderConvList original de la barra lateral
+  });
+});
 </script>
 </body>
 </html>
