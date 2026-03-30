@@ -804,35 +804,37 @@ function renderPanels() {
     }).join('');
 
     const derivedHtml = conv.derived
-      ? `<span class="derived-badge" style="display:inline-flex">
-           <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+      ? `<span class="derived-badge">
+           <svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
            ${escHtml(conv.derived)}
          </span>`
       : '';
 
     return `
     <div class="chat-panel" id="panel-${convId}">
-      <div class="chat-header d-flex align-items-center justify-content-between gap-2">
-        <div class="chat-header-left d-flex align-items-center gap-2 flex-shrink-0">
+      <div class="chat-header">
+        <div class="chat-header-left">
           <div class="conv-avatar ${conv.avClass}">${conv.av}</div>
-          <div>
-            <div class="chat-user-name">${escHtml(conv.name)}</div>
-            <div class="chat-user-sub d-flex align-items-center gap-1">
+          <div class="chat-header-info">
+            <div class="chat-user-name-row">
+              <span class="chat-user-name">${escHtml(conv.name)}</span>
+              ${derivedHtml}
+            </div>
+            <div class="chat-user-sub">
               <span class="live-dot"></span>
               En vivo · ${escHtml(CHANNEL_LABEL[conv.channel])} · ${escHtml(conv.topic)}
-              ${derivedHtml}
             </div>
           </div>
         </div>
-        <div class="d-flex align-items-center gap-1 flex-shrink-0">
-          <button class="action-btn resolve-btn" onclick="closeChatPanel('${convId}')">
-            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+        <div class="chat-header-actions">
+          <button class="resolve-btn" onclick="closeChatPanel('${convId}')">
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M2.5 8.5l3.5 3.5 7-7"/>
             </svg>
-            <span class="resolve-label">Resolver</span>
+            Resolver
           </button>
           <button class="panel-close-btn" title="Cerrar panel" onclick="closeChatPanel('${convId}')">
-            <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8">
+            <svg viewBox="0 0 14 14" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6">
               <path d="M2 2l10 10M12 2L2 12"/>
             </svg>
           </button>
@@ -857,8 +859,7 @@ function renderPanels() {
               Respuestas
               <svg class="chevron" viewBox="0 0 10 6" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
             </button>
-            <div class="dropdown-panel dp-qr toolbar-qr-panel" id="qrPanel-${convId}">
-              <div class="dp-section-title">Respuestas rápidas</div>
+            <div class="dropdown-panel dp-panel dp-qr toolbar-qr-panel" id="qrPanel-${convId}">
               <div class="dp-qr-search-wrap">
                 <input class="dp-qr-search" placeholder="Filtrar respuestas..." oninput="filterQR('${convId}', this.value)">
               </div>
@@ -906,11 +907,13 @@ function renderQRList(convId, filter = '') {
 function toggleQR(convId) {
   const wrap = document.getElementById('qrWrap-' + convId);
   const isOpen = wrap.classList.contains('open');
-  // Cerrar todos los demás
   document.querySelectorAll('.dropdown-wrap.open').forEach(w => w.classList.remove('open'));
   if (!isOpen) {
     wrap.classList.add('open');
     renderQRList(convId);
+    // Foco en el buscador
+    const search = wrap.querySelector('.dp-qr-search');
+    if (search) setTimeout(() => search.focus(), 50);
   }
 }
 

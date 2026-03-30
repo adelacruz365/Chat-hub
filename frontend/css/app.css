@@ -362,6 +362,128 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
   overflow: hidden;
 }
 
+/* ── Chat panel header ─────────────────────────────────────── */
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  flex-shrink: 0;
+}
+
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.chat-user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chat-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.chat-user-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.derived-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,208,0.07);
+  border: 1px solid rgba(0,0,208,0.2);
+  color: var(--electric);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px 2px 5px;
+  border-radius: 20px;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Resolve button — llamativo, verde */
+.resolve-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px 5px 9px;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  box-shadow: 0 1px 4px rgba(22,163,74,0.25);
+  letter-spacing: 0.01em;
+}
+.resolve-btn:hover {
+  background: #15803d;
+  box-shadow: 0 2px 8px rgba(22,163,74,0.35);
+}
+.resolve-btn:active {
+  transform: scale(0.97);
+}
+.resolve-btn svg { flex-shrink: 0; stroke: #fff; }
+
+/* Close button — discreto */
+.panel-close-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--text-3);
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+.panel-close-btn:hover {
+  background: rgba(220,38,38,0.07);
+  border-color: rgba(220,38,38,0.3);
+  color: #dc2626;
+}
+
 .panel-header {
   display: flex; align-items: center; gap: 8px;
   padding: 9px 12px;
@@ -688,11 +810,19 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
 .dp-qr-panel {
   max-height: 320px;
   overflow: hidden;
-  display: flex;
   flex-direction: column;
 }
 
+.dropdown-wrap.open .dp-qr-panel {
+  display: flex;
+}
+
 .dp-qr-header {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dp-qr-search-wrap {
   padding: 8px;
   border-bottom: 1px solid var(--border);
 }
