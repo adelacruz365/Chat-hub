@@ -527,10 +527,10 @@ function sendTechMsg() {} // shim por compatibilidad
 // ── Técnicos tab ─────────────────────────────────────────────
 const TECNICOS_DATA = [
   // Chats individuales
-  { id: 'tec-carlos',  type: 'dm',    name: 'Carlos R.',    av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', online: true,  lastMsg: '¿Alguien tiene acceso al servidor de prod?', time: '14:28', unread: 2 },
-  { id: 'tec-ana',     type: 'dm',    name: 'Ana P.',       av: 'AP', avColor: '#92400e', avBg: '#fef3c7', online: true,  lastMsg: 'Sí, lo reviso ahora. Dame 2 minutos.',       time: '14:29', unread: 0 },
-  { id: 'tec-jorge',   type: 'dm',    name: 'Jorge M.',     av: 'JM', avColor: '#065f46', avBg: '#d1fae5', online: false, lastMsg: 'El ticket #4821 ya está cerrado.',           time: '13:55', unread: 0 },
-  { id: 'tec-sara',    type: 'dm',    name: 'Sara V.',      av: 'SV', avColor: '#9d174d', avBg: '#fce7f3', online: true,  lastMsg: 'Paso la documentación esta tarde.',           time: '13:10', unread: 1 },
+  { id: 'tec-carlos',  type: 'dm',    name: 'Carlos R.',    av: 'CR', avColor: '#7c3aed', avBg: '#ede9fe', online: true,  status: 'disponible',   lastMsg: '¿Alguien tiene acceso al servidor de prod?', time: '14:28', unread: 2 },
+  { id: 'tec-ana',     type: 'dm',    name: 'Ana P.',       av: 'AP', avColor: '#92400e', avBg: '#fef3c7', online: true,  status: 'ocupado',      lastMsg: 'Sí, lo reviso ahora. Dame 2 minutos.',       time: '14:29', unread: 0 },
+  { id: 'tec-jorge',   type: 'dm',    name: 'Jorge M.',     av: 'JM', avColor: '#065f46', avBg: '#d1fae5', online: false, status: 'ausente',      lastMsg: 'El ticket #4821 ya está cerrado.',           time: '13:55', unread: 0 },
+  { id: 'tec-sara',    type: 'dm',    name: 'Sara V.',      av: 'SV', avColor: '#9d174d', avBg: '#fce7f3', online: true,  status: 'desconectado', lastMsg: 'Paso la documentación esta tarde.',           time: '13:10', unread: 1 },
   // Grupos / canales
   { id: 'tec-infra',   type: 'group', name: '🖥️ Infraestructura', av: 'INF', avColor: '#1d4ed8', avBg: '#dbeafe', online: null, lastMsg: 'Carlos: Reiniciado el nodo 3.',       time: '14:31', unread: 5 },
   { id: 'tec-dev',     type: 'group', name: '👨‍💻 Desarrollo',      av: 'DEV', avColor: '#065f46', avBg: '#d1fae5', online: null, lastMsg: 'Ana: Deploy en staging listo.',       time: '14:20', unread: 0 },
@@ -605,13 +605,20 @@ function renderTecnicosList() {
 }
 
 function tecnicoItem(t) {
+  const DOT_COLOR = { disponible: 'online', ocupado: 'tec-dot-ocupado', ausente: 'tec-dot-ausente', desconectado: 'offline' };
   const onlineDot = t.type === 'dm'
-    ? `<span class="tec-online-dot ${t.online ? 'online' : 'offline'}"></span>`
+    ? `<span class="tec-online-dot ${DOT_COLOR[t.status] || 'offline'}"></span>`
     : '';
   const typeLabel = t.type === 'dm' ? 'Directo' : 'Canal';
   const typeBadgeClass = t.type === 'dm' ? 'ch-badge-web' : 'ch-badge-teams';
-  const statusLabel = t.type === 'dm' ? (t.online ? 'Activo' : 'Desconectado') : 'Grupo';
-  const statusClass = t.type === 'dm' ? (t.online ? 'badge-active' : 'badge-resolved') : 'badge-waiting';
+  const STATUS_MAP = {
+    disponible:   { label: 'Disponible',   cls: 'badge-active' },
+    ocupado:      { label: 'Ocupado',      cls: 'tec-badge-ocupado' },
+    ausente:      { label: 'Ausente',      cls: 'tec-badge-ausente' },
+    desconectado: { label: 'Desconectado', cls: 'badge-resolved' },
+  };
+  const statusLabel = t.type === 'dm' ? (STATUS_MAP[t.status]?.label || 'Desconectado') : 'Grupo';
+  const statusClass  = t.type === 'dm' ? (STATUS_MAP[t.status]?.cls  || 'badge-resolved') : 'badge-waiting';
   return `
     <div class="conv-item tec-item ${openPanels.includes(t.id) ? 'active' : ''}" onclick="openTecPanel('${t.id}')">
       <div class="conv-top">
@@ -628,7 +635,7 @@ function tecnicoItem(t) {
       </div>
       <div class="conv-footer">
         <span class="status-badge ${statusClass}">${statusLabel}</span>
-        <span class="ch-badge ${typeBadgeClass}">${typeLabel}</span>
+        ${t.type !== 'dm' ? `<span class="ch-badge ${typeBadgeClass}">${typeLabel}</span>` : ''}
       </div>
     </div>`;
 }

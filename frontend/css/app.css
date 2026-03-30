@@ -338,10 +338,12 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
   font-size: 9px; font-weight: 600;
   padding: 2px 6px; border-radius: 3px;
 }
-.badge-active   { background: rgba(22,163,74,0.15); color: var(--green); border: 1px solid rgba(22,163,74,0.3); }
+.badge-active   { color: var(--green); }
 .badge-pending  { background: rgba(100,100,115,0.1); color: #6b7280; border: 1px solid rgba(100,100,115,0.25); }
 .badge-waiting  { background: rgba(220,38,38,0.1); color: #dc2626; border: 1px solid rgba(220,38,38,0.3); }
-.badge-resolved { background: rgba(13,148,136,0.15); color: var(--teal); border: 1px solid rgba(13,148,136,0.3); }
+.badge-resolved { color: black; }
+.tec-badge-ocupado { color: #dc2626; }
+.tec-badge-ausente { color: #d97706; }
 
 /* ── Resize handle ───────────────────────────────────────── */
 .resize-handle {
@@ -1657,8 +1659,10 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
   width: 8px; height: 8px; border-radius: 50%;
   border: 1.5px solid var(--bg-panel);
 }
-.tec-online-dot.online  { background: var(--green); }
-.tec-online-dot.offline { background: var(--text-3); }
+.tec-online-dot.online          { background: var(--green); }
+.tec-online-dot.offline         { background: #111; }
+.tec-online-dot.tec-dot-ocupado { background: #dc2626; }
+.tec-online-dot.tec-dot-ausente { background: #f59e0b; }
 /* Bubbles from other users in tec panels */
 .msg-bubble.user-bubble {
   background: var(--bg-card);
