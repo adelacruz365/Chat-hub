@@ -388,7 +388,8 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
 .chat-panel {
   background: var(--bg-panel);
   display: flex; flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
+  min-width: 0;
 }
 
 /* ── Chat panel header ─────────────────────────────────────── */
@@ -732,6 +733,12 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
   flex-shrink: 0;
 }
 
+.input-area {
+  flex-shrink: 0;
+  overflow: visible;
+  position: relative;
+}
+
 .panel-actions {
   display: flex;
   gap: 6px;
@@ -759,10 +766,64 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
   color: var(--electric);
 }
 
-.input-row {
+.input-main-row .input-row {
   display: flex;
   gap: 6px;
   align-items: flex-end;
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  background: var(--bg-panel);
+}
+
+/* Dos filas: toolbar arriba, input+send abajo */
+.input-main-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  overflow: visible;
+  position: relative;
+}
+
+.input-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 5px 8px 4px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  overflow: visible;
+  position: relative;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: var(--font);
+  font-weight: 500;
+  color: var(--text-1);
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+.toolbar-btn:hover {
+  background: var(--electric-dim);
+  color: var(--electric);
+}
+.toolbar-btn svg {
+  flex-shrink: 0;
+  opacity: 0.8;
+  stroke: currentColor;
 }
 
 .msg-input {
@@ -822,16 +883,14 @@ body { font-family: var(--font); font-size: 13px; background: var(--bg-base); co
 }
 
 .dp-panel {
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  margin-bottom: 6px;
+  position: fixed;
+  margin-bottom: 0;
   background: white;
   border: 1px solid var(--border-med);
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   display: none;
-  z-index: 100;
+  z-index: 9999;
   min-width: 280px;
   max-width: 340px;
 }
