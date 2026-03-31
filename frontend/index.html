@@ -1332,7 +1332,7 @@ function renderPanels() {
           </div>
         </div>
         <div class="d-flex align-items-center gap-2 flex-shrink-0">
-          <button class="resolve-btn action-btn" onclick="closeChatPanel('${convId}')">
+          <button class="resolve-btn" onclick="closeChatPanel('${convId}')">
             <svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M2.5 8.5l3.5 3.5 7-7"/>
             </svg>
@@ -1364,33 +1364,20 @@ function renderPanels() {
               Respuestas
               <svg class="chevron" viewBox="0 0 10 6" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
             </button>
-            <button class="toolbar-btn">
-              <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5.5"/><path d="M7 4.5V7l1.5 1.5"/></svg>
-              Plantillas
-            </button>
-            <div class="dropdown-wrap toolbar-dropdown" id="qrWrap-${convId}">
-              <button class="toolbar-btn dropdown-trigger" onclick="toggleQR('${convId}')">
-                <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
-                  <path d="M12 1H2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.5l1.5 2.5 1.5-2.5H12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
-                </svg>
-                Respuestas
-                <svg class="chevron" viewBox="0 0 10 6" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
-              </button>
-              <div class="dropdown-panel dp-panel dp-qr toolbar-qr-panel" id="qrPanel-${convId}">
-                <div class="dp-qr-search-wrap">
-                  <input class="dp-qr-search" placeholder="Filtrar respuestas..." oninput="filterQR('${convId}', this.value)">
-                </div>
-                <div class="dp-qr-list" id="qrList-${convId}"></div>
+            <div class="dropdown-panel dp-panel dp-qr toolbar-qr-panel" id="qrPanel-${convId}">
+              <div class="dp-qr-search-wrap">
+                <input class="dp-qr-search" placeholder="Filtrar respuestas..." oninput="filterQR('${convId}', this.value)">
               </div>
+              <div class="dp-qr-list" id="qrList-${convId}"></div>
             </div>
           </div>
-          <div class="input-row">
-            <textarea class="msg-input" id="msgInput-${convId}" placeholder="Escribe un mensaje..." rows="1"
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPanelMsg(this,'${convId}')}"></textarea>
-            <button class="send-btn" onclick="sendPanelMsg(document.getElementById('msgInput-${convId}'),'${convId}')">
-              <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-            </button>
-          </div>
+        </div>
+        <div class="input-row">
+          <textarea class="msg-input" id="msgInput-${convId}" placeholder="Escribe un mensaje..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPanelMsg(this,'${convId}')}"></textarea>
+          <button class="send-btn" onclick="sendPanelMsg(document.getElementById('msgInput-${convId}'),'${convId}')">
+            <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
         </div>
       </div>
     </div>`;
