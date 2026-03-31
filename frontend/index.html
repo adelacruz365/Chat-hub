@@ -330,6 +330,84 @@
       flex-wrap: wrap !important;
     }
     .msg-input:focus { border-color: rgba(0,0,208,0.35) !important; }
+
+    /* ── Client Info Modal ── */
+    .client-info-modal {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -46%) scale(0.96);
+      opacity: 0;
+      transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
+      z-index: 1200;
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.09);
+      border-radius: 16px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.16), 0 4px 16px rgba(0,0,0,0.06);
+      width: 360px; max-width: calc(100vw - 32px);
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .client-info-modal.open {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      display: flex !important;
+    }
+    .ci-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 16px 14px;
+      background: linear-gradient(135deg, #f0f4ff 0%, #e8edf8 100%);
+      border-bottom: 2px solid var(--ayesa-blue, #0000D0);
+    }
+    .ci-header-left { display: flex; align-items: center; gap: 11px; }
+    .ci-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: white;
+      flex-shrink: 0;
+    }
+    .ci-name { font-size: 14px; font-weight: 700; color: #0d0f14; }
+    .ci-channel { font-size: 10px; color: #5a6070; margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+    .ci-close-btn {
+      width: 28px; height: 28px;
+      border: 1px solid rgba(0,0,0,0.1); border-radius: 7px;
+      background: rgba(255,255,255,0.8); color: #5a6070;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.13s; flex-shrink: 0;
+    }
+    .ci-close-btn:hover { background: rgba(255,49,132,0.08); border-color: rgba(255,49,132,0.3); color: #FF3184; }
+    .ci-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+    .ci-section-label {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #9aa0ad;
+      padding: 8px 0 4px; border-top: 1px solid rgba(0,0,0,0.06);
+      margin-top: 4px;
+    }
+    .ci-section-label:first-child { padding-top: 0; border-top: none; margin-top: 0; }
+    .ci-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; padding: 7px 10px;
+      background: #f7f8fa; border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 8px; transition: background 0.12s;
+    }
+    .ci-row:hover { background: #eef1ff; border-color: rgba(0,0,208,0.12); }
+    .ci-row-left { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .ci-row-icon {
+      width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,208,0.07);
+    }
+    .ci-row-icon svg { stroke: #0000D0; }
+    .ci-row-info { min-width: 0; }
+    .ci-row-label { font-size: 10px; color: #9aa0ad; font-weight: 500; }
+    .ci-row-value { font-size: 12px; color: #0d0f14; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+    .ci-copy-btn {
+      width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+      border: 1px solid rgba(0,0,0,0.09); background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #9aa0ad; transition: all 0.13s;
+    }
+    .ci-copy-btn:hover { background: #0000D0; border-color: #0000D0; color: white; }
+    .ci-copy-btn.copied { background: #16a34a; border-color: #16a34a; color: white; }
+    .ci-copy-btn svg { stroke: currentColor; }
   </style>
 </head>
 <body>
@@ -662,6 +740,27 @@
 
 <!-- ═══ TOAST ═══════════════════════════════════════════════ -->
 <div id="toastContainer"></div>
+
+<!-- ═══ CLIENT INFO MODAL ════════════════════════════════════ -->
+<div class="overlay" id="clientInfoOverlay" style="display:none" onclick="closeClientInfo()"></div>
+<div class="client-info-modal" id="clientInfoModal" style="display:none">
+  <div class="ci-header">
+    <div class="ci-header-left">
+      <div class="ci-avatar" id="ciAvatar"></div>
+      <div>
+        <div class="ci-name" id="ciName"></div>
+        <div class="ci-channel" id="ciChannel"></div>
+      </div>
+    </div>
+    <button class="ci-close-btn" onclick="closeClientInfo()">
+      <svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M2 2l10 10M12 2L2 12"/>
+      </svg>
+    </button>
+  </div>
+  <div class="ci-body" id="ciBody"></div>
+</div>
+
 
 <!-- ═══ SEARCH PANEL ════════════════════════════════════════ -->
 <div class="side-panel search-panel" id="searchPanel">
@@ -1319,10 +1418,10 @@ function renderPanels() {
     <div class="chat-panel" id="panel-${convId}">
       <div class="chat-header">
         <div class="chat-header-left d-flex align-items-center gap-2 flex-1" style="min-width:0">
-          <div class="conv-avatar ${conv.avClass}">${conv.av}</div>
+          <div class="conv-avatar ${conv.avClass} client-info-trigger" style="cursor:pointer" title="Ver info del cliente" onclick="openClientInfo('${convId}')">${conv.av}</div>
           <div style="min-width:0">
             <div class="chat-name-resolve-row">
-              <div class="chat-user-name">${escHtml(conv.name)}</div>
+              <div class="chat-user-name client-info-trigger" style="cursor:pointer" title="Ver info del cliente" onclick="openClientInfo('${convId}')">${escHtml(conv.name)}</div>
               ${derivedHtml}
             </div>
             <div class="chat-user-sub">
@@ -1545,6 +1644,160 @@ function showToast(msg, type = 'info') {
   c.appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
+
+
+// ── Client Info Modal ────────────────────────────────────────
+const CLIENT_INFO = {
+  conv1: {
+    name: 'Juan Martínez',
+    avClass: 'av-web',
+    channel: 'Web Chat',
+    email: 'juan.martinez@email.com',
+    phone: '+34 612 345 678',
+    address: 'Calle Mayor 12, 3ºB · Madrid, 28013',
+    company: 'TechSolutions SL',
+    nif: '12345678A',
+    since: '15 mar 2023',
+    tickets: 7,
+  },
+  conv2: {
+    name: 'Lucía García',
+    avClass: 'av-wa',
+    channel: 'WhatsApp',
+    email: 'lucia.garcia@gmail.com',
+    phone: '+34 698 765 432',
+    address: 'Avda. Diagonal 88, 1ºA · Barcelona, 08019',
+    company: '—',
+    nif: '87654321B',
+    since: '2 ene 2024',
+    tickets: 3,
+  },
+  conv3: {
+    name: 'Mario Ruiz',
+    avClass: 'av-teams',
+    channel: 'Teams',
+    email: 'mario.ruiz@empresa.es',
+    phone: '+34 655 111 222',
+    address: 'Paseo Colón 4, 2ºC · Sevilla, 41001',
+    company: 'Empresa S.A.',
+    nif: '11223344C',
+    since: '9 jul 2022',
+    tickets: 14,
+  },
+  conv4: {
+    name: 'Elena Castro',
+    avClass: 'av-web',
+    channel: 'Web Chat',
+    email: 'elenac@correo.com',
+    phone: '+34 633 987 654',
+    address: 'C/ Cervantes 3, 4ºD · Valencia, 46003',
+    company: '—',
+    nif: '44556677D',
+    since: '20 oct 2023',
+    tickets: 2,
+  },
+  conv5: {
+    name: 'Paco Jiménez',
+    avClass: 'av-wa',
+    channel: 'WhatsApp',
+    email: 'paco.jimenez@work.es',
+    phone: '+34 677 543 210',
+    address: 'Gran Vía 55, 5ºA · Bilbao, 48011',
+    company: 'Jiménez & Hnos.',
+    nif: '55667788E',
+    since: '3 feb 2024',
+    tickets: 5,
+  },
+};
+
+const AV_BG = {
+  'av-web': '#0d9488', 'av-wa': '#15803d', 'av-teams': '#7c3aed',
+  'av-user': '#764ba2', 'av-agent': '#0000D0',
+};
+
+function openClientInfo(convId) {
+  const info = CLIENT_INFO[convId];
+  if (!info) return;
+
+  // Avatar
+  const av = document.getElementById('ciAvatar');
+  av.textContent = info.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  av.style.background = AV_BG[info.avClass] || '#0000D0';
+
+  document.getElementById('ciName').textContent = info.name;
+  document.getElementById('ciChannel').textContent = info.channel;
+
+  const fields = [
+    { section: 'Contacto' },
+    { icon: emailIcon(), label: 'Email', value: info.email },
+    { icon: phoneIcon(), label: 'Teléfono', value: info.phone },
+    { section: 'Dirección' },
+    { icon: locationIcon(), label: 'Dirección', value: info.address },
+    { section: 'Datos del cliente' },
+    { icon: buildingIcon(), label: 'Empresa', value: info.company },
+    { icon: idIcon(), label: 'NIF / DNI', value: info.nif },
+    { icon: calendarIcon(), label: 'Cliente desde', value: info.since },
+    { icon: ticketIcon(), label: 'Tickets totales', value: info.tickets + ' tickets' },
+  ];
+
+  document.getElementById('ciBody').innerHTML = fields.map(f => {
+    if (f.section) return `<div class="ci-section-label">${f.section}</div>`;
+    return `<div class="ci-row">
+      <div class="ci-row-left">
+        <div class="ci-row-icon">${f.icon}</div>
+        <div class="ci-row-info">
+          <div class="ci-row-label">${f.label}</div>
+          <div class="ci-row-value" title="${f.value}">${f.value}</div>
+        </div>
+      </div>
+      <button class="ci-copy-btn" title="Copiar" onclick="copyField(this, '${f.value.replace(/'/g,"\'")}')">
+        <svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke-width="1.4">
+          <rect x="4" y="4" width="8" height="8" rx="1.5"/>
+          <path d="M2 10V2h8"/>
+        </svg>
+      </button>
+    </div>`;
+  }).join('');
+
+  const overlay = document.getElementById('clientInfoOverlay');
+  const modal   = document.getElementById('clientInfoModal');
+  overlay.style.display = 'block';
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => modal.classList.add('open'));
+}
+
+function closeClientInfo() {
+  const modal   = document.getElementById('clientInfoModal');
+  const overlay = document.getElementById('clientInfoOverlay');
+  modal.classList.remove('open');
+  setTimeout(() => {
+    modal.style.display = 'none';
+    overlay.style.display = 'none';
+  }, 220);
+}
+
+function copyField(btn, value) {
+  navigator.clipboard.writeText(value).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = value; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); ta.remove();
+  });
+  btn.classList.add('copied');
+  btn.innerHTML = '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke-width="2"><path d="M2 7l3.5 3.5 6.5-6.5"/></svg>';
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.innerHTML = '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke-width="1.4"><rect x="4" y="4" width="8" height="8" rx="1.5"/><path d="M2 10V2h8"/></svg>';
+  }, 1800);
+}
+
+// SVG icon helpers
+function emailIcon() { return '<svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="12" height="8" rx="1.5"/><path d="M1 4l6 4 6-4"/></svg>'; }
+function phoneIcon() { return '<svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 2h3l1.5 3.5-2 1.2a7 7 0 0 0 3.3 3.3l1.2-2L12.5 9V12A1 1 0 0 1 11.5 13C5.7 13 1 8.3 1 2.5A1 1 0 0 1 2 2z"/></svg>'; }
+function locationIcon() { return '<svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 1a4 4 0 0 1 4 4c0 3-4 8-4 8S3 8 3 5a4 4 0 0 1 4-4z"/><circle cx="7" cy="5" r="1.5"/></svg>'; }
+function buildingIcon() { return '<svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="8" height="10" rx="1"/><path d="M9 6h3a1 1 0 0 1 1 1v6H9"/><path d="M3.5 6v.01M3.5 8.5v.01M6 6v.01M6 8.5v.01M3.5 11v.01M6 11v.01"/></svg>'; }
+function idIcon() { return '<svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="12" height="8" rx="1.5"/><circle cx="4.5" cy="7" r="1.5"/><path d="M8 5.5h3M8 8.5h2"/></svg>'; }
+function calendarIcon() { return '<svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="2.5" width="12" height="10" rx="1.5"/><path d="M1 5.5h12M4.5 1v3M9.5 1v3"/></svg>'; }
+function ticketIcon() { return '<svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 5a1 1 0 0 0 0 4v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9a1 1 0 0 0 0-4V3a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2z"/></svg>'; }
 
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
