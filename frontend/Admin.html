@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unified Response Hub · Panel Supervisor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ayesa-blue:     #0000D0;
+      --ayesa-blue-dim: rgba(0,0,208,0.07);
+      --ayesa-blue-mid: rgba(0,0,208,0.15);
+      --ayesa-pink:     #FF3184;
+      --ayesa-pink-dim: rgba(255,49,132,0.07);
+      --ayesa-dark:     #0a0a1a;
+      --electric:       #0000D0;
+      --electric-dim:   rgba(0,0,208,0.07);
+      --electric-mid:   rgba(0,0,208,0.15);
+      --magenta:        #FF3184;
+      --magenta-dim:    rgba(255,49,132,0.08);
+      --bg-base:        #f0f2f5;
+      --bg-panel:       #ffffff;
+      --bg-card:        #f7f8fa;
+      --bg-hover:       #eef0f4;
+      --border:         rgba(0,0,0,0.07);
+      --border-med:     rgba(0,0,0,0.11);
+      --text-1:         #0d0f14;
+      --text-2:         #5a6070;
+      --text-3:         #9aa0ad;
+      --green:          #16a34a;
+      --amber:          #d97706;
+      --red:            #dc2626;
+      --teal:           #0d9488;
+      --purple:         #7c3aed;
+      --header-h:       46px;
+      --font:           'IBM Plex Sans', 'Segoe UI', sans-serif;
+      --mono:           'IBM Plex Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: var(--font); font-size: 13px; background: var(--bg-base); color: var(--text-1); }
+
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
+
+    /* ══ APP SHELL ══ */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* ── Header ── */
+    .header {
+      height: var(--header-h);
+      background: var(--ayesa-dark);
+      border-bottom: 2px solid var(--ayesa-blue);
+      padding: 0 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .header-brand { display: flex; align-items: center; gap: 8px; }
+    .brand-icon {
+      width: 26px; height: 26px;
+      background: var(--ayesa-blue);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-name { font-size: 13px; font-weight: 600; white-space: nowrap; color: #fff; }
+    .brand-sep { width: 1px; height: 18px; background: rgba(255,255,255,0.15); margin: 0 4px; }
+    .brand-tag {
+      font-size: 10px; font-weight: 700; font-family: var(--mono);
+      color: var(--ayesa-pink);
+      background: var(--ayesa-pink-dim);
+      border: 1px solid rgba(255,49,132,0.3);
+      border-radius: 4px; padding: 2px 7px;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .header-time {
+      font-size: 11px; font-family: var(--mono); color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 5px; padding: 3px 9px;
+    }
+
+    /* Azure status in Admin header */
+    .ws-dot-wrap {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; color: rgba(255,255,255,0.65);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(34,197,94,0.35);
+      border-radius: 20px;
+      padding: 3px 9px 3px 7px;
+      font-family: var(--mono);
+      white-space: nowrap;
+    }
+    .ws-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.2), 0 0 8px rgba(34,197,94,0.5);
+      animation: pulseDot 2s infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulseDot {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(34,197,94,0.2), 0 0 8px rgba(34,197,94,0.5); }
+      50%       { box-shadow: 0 0 0 5px rgba(34,197,94,0.1), 0 0 12px rgba(34,197,94,0.3); }
+    }
+
+    .hdr-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 5px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8);
+      font-size: 11px; font-weight: 500; font-family: var(--font);
+      cursor: pointer; transition: all 0.13s; white-space: nowrap;
+    }
+    .hdr-btn:hover { background: var(--ayesa-blue-dim); border-color: var(--ayesa-blue); color: #fff; }
+    .hdr-btn.danger:hover { background: rgba(220,38,38,0.12); border-color: rgba(220,38,38,0.4); color: #f87171; }
+
+    /* ── Tabs ── */
+    .admin-tabs {
+      display: flex; align-items: center; gap: 0;
+      padding: 0 16px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 14px;
+      font-size: 12px; font-weight: 500; color: var(--text-2);
+      border: none; background: none; cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.13s; font-family: var(--font);
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text-1); }
+    .tab-btn.active { color: var(--ayesa-blue); border-bottom-color: var(--ayesa-blue); font-weight: 600; }
+    .tab-count {
+      font-size: 10px; font-weight: 600; color: var(--ayesa-blue);
+      background: var(--ayesa-blue-dim); border-radius: 10px;
+      padding: 1px 6px; min-width: 18px; text-align: center;
+    }
+
+    /* ── Main ── */
+    .main { flex: 1; overflow: auto; padding: 20px; }
+
+    /* ── KPI bar ── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 4px;
+      transition: box-shadow 0.15s;
+    }
+    .kpi-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .kpi-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-3);
+    }
+    .kpi-value {
+      font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--text-1); line-height: 1;
+      font-family: var(--mono);
+    }
+    .kpi-sub { font-size: 11px; color: var(--text-3); }
+    .kpi-accent { border-top: 3px solid; }
+    .kpi-accent.green  { border-color: var(--green); }
+    .kpi-accent.amber  { border-color: var(--amber); }
+    .kpi-accent.teal   { border-color: var(--teal); }
+    .kpi-accent.electric { border-color: var(--electric); }
+    .kpi-accent.magenta  { border-color: var(--magenta); }
+
+    /* ── Tab views ── */
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
+
+    /* ── Grid 2 cols ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── Section card ── */
+    .section-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title {
+      font-size: 12px; font-weight: 600; color: var(--text-1);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .section-title svg { opacity: 0.5; }
+    .section-badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 10px; border: 1px solid;
+    }
+    .section-badge.green  { background: rgba(22,163,74,0.08); border-color: rgba(22,163,74,0.25); color: var(--green); }
+    .section-badge.amber  { background: rgba(217,119,6,0.08); border-color: rgba(217,119,6,0.25); color: var(--amber); }
+    .section-badge.blue   { background: var(--electric-dim); border-color: rgba(0,0,208,0.2); color: var(--electric); }
+
+    /* ── Table ── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-3); text-align: left; padding: 8px 14px;
+      border-bottom: 1px solid var(--border); background: var(--bg-card);
+    }
+    .data-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px; color: var(--text-1);
+      vertical-align: middle;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--bg-hover); }
+
+    /* ── Avatar ── */
+    .av {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+    .av-blue   { background: rgba(0,0,208,0.12); color: var(--electric); }
+    .av-green  { background: rgba(22,163,74,0.12); color: var(--green); }
+    .av-amber  { background: rgba(217,119,6,0.12); color: var(--amber); }
+    .av-purple { background: rgba(124,58,237,0.12); color: var(--purple); }
+    .av-teal   { background: rgba(13,148,136,0.12); color: var(--teal); }
+    .av-magenta { background: rgba(255,49,132,0.1); color: var(--magenta); }
+
+    /* ── Status badges ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; border: 1px solid; white-space: nowrap;
+    }
+    .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .badge.free     { background: rgba(22,163,74,0.08); border-color: rgba(22,163,74,0.25); color: var(--green); }
+    .badge.busy     { background: rgba(217,119,6,0.08); border-color: rgba(217,119,6,0.25); color: var(--amber); }
+    .badge.offline  { background: var(--bg-card); border-color: var(--border-med); color: var(--text-3); }
+    .badge.resolved { background: rgba(13,148,136,0.08); border-color: rgba(13,148,136,0.25); color: var(--teal); }
+    .badge.critical { background: rgba(220,38,38,0.08); border-color: rgba(220,38,38,0.2); color: var(--red); }
+
+    /* ── Channel badge ── */
+    .ch-badge {
+      font-size: 9px; font-weight: 700; padding: 1px 6px;
+      border-radius: 3px; font-family: var(--mono);
+    }
+    .ch-wa     { background: #dcfce7; color: #15803d; }
+    .ch-teams  { background: #ede9fe; color: var(--purple); }
+    .ch-web    { background: var(--electric-dim); color: var(--electric); }
+    .ch-email  { background: rgba(217,119,6,0.1); color: var(--amber); }
+
+    /* ── Technician card ── */
+    .tec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; padding: 14px; }
+    .tec-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: box-shadow 0.15s;
+    }
+    .tec-card:hover { box-shadow: 0 3px 16px rgba(0,0,0,0.07); }
+    .tec-card-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tec-card-body { padding: 10px 14px; }
+    .tec-name { font-size: 13px; font-weight: 600; }
+    .tec-role { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+    .tec-meta { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+    .tec-stat { font-size: 10px; color: var(--text-2); font-family: var(--mono); }
+
+    .tec-users-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-3); margin-bottom: 6px;
+    }
+    .tec-user-row {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 8px; border-radius: 6px;
+      border: 1px solid transparent;
+      margin-bottom: 3px; cursor: default;
+      transition: background 0.12s;
+    }
+    .tec-user-row:hover { background: var(--bg-hover); border-color: var(--border); }
+    .tec-user-name { font-size: 12px; flex: 1; }
+    .tec-user-last { font-size: 10px; color: var(--text-3); }
+
+    /* ── Resolved timeline ── */
+    .timeline { padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; }
+    .tl-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 10px; border-radius: 7px;
+      border: 1px solid transparent; transition: all 0.12s;
+    }
+    .tl-item:hover { background: var(--bg-hover); border-color: var(--border); }
+    .tl-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--teal); margin-top: 4px; flex-shrink: 0;
+      box-shadow: 0 0 5px rgba(13,148,136,0.35);
+    }
+    .tl-body { flex: 1; min-width: 0; }
+    .tl-title { font-size: 12px; font-weight: 500; color: var(--text-1); }
+    .tl-meta  { font-size: 10px; color: var(--text-3); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+    .tl-sep   { width: 3px; height: 3px; border-radius: 50%; background: var(--text-3); }
+    .tl-time  { font-family: var(--mono); font-size: 10px; color: var(--text-3); white-space: nowrap; margin-left: auto; }
+
+    /* ── Free agents ── */
+    .free-agent-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    .free-agent-row:last-child { border-bottom: none; }
+    .free-agent-row:hover { background: var(--bg-hover); }
+    .free-info { flex: 1; min-width: 0; }
+    .free-name { font-size: 12px; font-weight: 600; }
+    .free-since { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+    .free-channels { display: flex; gap: 4px; }
+
+    /* ── Progress bar ── */
+    .prog-bar { height: 4px; background: var(--bg-hover); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+    .prog-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+
+    /* ── Empty ── */
+    .empty-hint {
+      text-align: center; padding: 28px; color: var(--text-3); font-size: 12px;
+    }
+
+    /* ── Scrollable body ── */
+    .scroll-body { overflow-y: auto; max-height: 340px; }
+
+    /* ── Tooltip dot ── */
+    .online-indicator {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .online-indicator.online  { background: var(--green); box-shadow: 0 0 4px rgba(22,163,74,0.4); }
+    .online-indicator.busy    { background: var(--amber); }
+    .online-indicator.offline { background: var(--text-3); }
+
+    /* ── Refresh button ── */
+    .refresh-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; border-radius: 5px;
+      border: 1px solid var(--border); background: transparent;
+      font-size: 10px; color: var(--text-3); font-family: var(--font);
+      cursor: pointer; transition: all 0.12s;
+    }
+    .refresh-btn:hover { color: var(--electric); border-color: rgba(0,0,208,0.2); background: var(--electric-dim); }
+    .refresh-btn.spinning svg { animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Chart mini ── */
+    .mini-bar-wrap { display: flex; align-items: flex-end; gap: 3px; height: 40px; padding: 0 16px 8px; }
+    .mini-bar {
+      flex: 1; border-radius: 3px 3px 0 0;
+      background: var(--electric-dim);
+      position: relative; transition: background 0.15s;
+      cursor: default; min-width: 12px;
+    }
+    .mini-bar.active { background: var(--electric); }
+    .mini-bar:hover { background: rgba(0,0,208,0.3); }
+    .mini-bar-label { font-size: 9px; color: var(--text-3); text-align: center; margin-top: 4px; font-family: var(--mono); }
+    .mini-chart-row { padding: 0 16px 4px; }
+
+    /* ── Assign button ── */
+    .assign-btn {
+      padding: 3px 10px; border-radius: 5px;
+      border: 1px solid var(--border-med); background: var(--bg-card);
+      font-size: 10px; font-weight: 500; font-family: var(--font);
+      color: var(--text-2); cursor: pointer; transition: all 0.12s;
+    }
+    .assign-btn:hover { background: var(--electric); color: white; border-color: var(--electric); }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ HEADER ════════════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 16 16" fill="white" width="14" height="14">
+          <path d="M8 1C4.13 1 1 3.91 1 7.5c0 1.67.63 3.2 1.68 4.37L1.5 15l3.3-1.06A7.1 7.1 0 0 0 8 14c3.87 0 7-2.91 7-6.5S11.87 1 8 1z"/>
+        </svg>
+      </div>
+      <span class="brand-name">Unified Response Hub</span>
+      <div class="brand-sep"></div>
+      <span class="brand-tag">Supervisor</span>
+    </div>
+
+    <div class="header-right">
+      <div class="header-time" id="clockDisplay">--:--:--</div>
+      <div class="ws-dot-wrap" title="Estado de la conexión Azure · En vivo">
+        <div class="ws-dot"></div>
+        <span>Estado de la conexión</span>
+      </div>
+      <button class="hdr-btn" onclick="window.location.href='index.html'">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M8 2v6l4 2"/><circle cx="8" cy="9" r="6.5"/>
+        </svg>
+        Hub de conversaciones
+      </button>
+      <button class="hdr-btn danger" onclick="window.location.href='login.html'">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3M10 11l3-3-3-3M13 8H6"/>
+        </svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══ TABS ═══════════════════════════════════════════════ -->
+  <div class="admin-tabs">
+    <button class="tab-btn active" data-tab="overview" onclick="switchTab(this, 'overview')">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/>
+        <rect x="1.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/>
+      </svg>
+      Visión general
+    </button>
+    <button class="tab-btn" data-tab="resolved" onclick="switchTab(this, 'resolved')">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polyline points="1.5,8 5.5,12 14.5,3"/>
+      </svg>
+      Resueltas hoy
+      <span class="tab-count" id="resolvedTabCount">12</span>
+    </button>
+    <button class="tab-btn" data-tab="technicians" onclick="switchTab(this, 'technicians')">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="6" cy="5" r="3"/><path d="M1 14c0-2.76 2.24-5 5-5h.5"/>
+        <circle cx="12" cy="11" r="3.5"/><path d="M12 9v2l1 1"/>
+      </svg>
+      Técnicos
+      <span class="tab-count">6</span>
+    </button>
+    <button class="tab-btn" data-tab="agents" onclick="switchTab(this, 'agents')">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="8" cy="5" r="3"/><path d="M1 14c0-2.76 3.13-5 7-5s7 2.24 7 5"/>
+      </svg>
+      Agentes
+      <span class="tab-count">8</span>
+    </button>
+  </div>
+
+  <!-- ═══ MAIN ═════════════════════════════════════════════== -->
+  <div class="main">
+
+    <!-- ─── KPI BAR ────────────────────────────────────────── -->
+    <div class="kpi-row">
+      <div class="kpi-card kpi-accent teal">
+        <div class="kpi-label">Resueltas hoy</div>
+        <div class="kpi-value" id="kpiResolved">12</div>
+        <div class="kpi-sub">+3 respecto a ayer</div>
+      </div>
+      <div class="kpi-card kpi-accent green">
+        <div class="kpi-label">Agentes libres</div>
+        <div class="kpi-value" id="kpiFree">3</div>
+        <div class="kpi-sub">de 8 agentes totales</div>
+      </div>
+      <div class="kpi-card kpi-accent amber">
+        <div class="kpi-label">En conversación</div>
+        <div class="kpi-value" id="kpiBusy">5</div>
+        <div class="kpi-sub">conversaciones activas</div>
+      </div>
+      <div class="kpi-card kpi-accent electric">
+        <div class="kpi-label">Tiempo medio</div>
+        <div class="kpi-value">4m 38s</div>
+        <div class="kpi-sub">por resolución hoy</div>
+      </div>
+      <div class="kpi-card kpi-accent magenta">
+        <div class="kpi-label">En cola</div>
+        <div class="kpi-value" id="kpiQueue">2</div>
+        <div class="kpi-sub">sin asignar</div>
+      </div>
+    </div>
+
+    <!-- ─── TAB: OVERVIEW ─────────────────────────────────── -->
+    <div class="tab-view active" id="tab-overview">
+      <div class="grid-2">
+
+        <!-- Agentes libres ahora -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="8" cy="5" r="3"/><path d="M1 14c0-2.76 3.13-5 7-5s7 2.24 7 5"/>
+              </svg>
+              Agentes libres ahora
+            </div>
+            <span class="section-badge green" id="freeCount">3 disponibles</span>
+          </div>
+          <div id="freeAgentsList"></div>
+        </div>
+
+        <!-- Últimas resueltas -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+                <polyline points="1.5,8 5.5,12 14.5,3"/>
+              </svg>
+              Últimas resueltas
+            </div>
+            <button class="refresh-btn" id="refreshBtn" onclick="refreshTimeline()">
+              <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M13.5 2.5A6.5 6.5 0 1 1 7 1.5"/><polyline points="10,1.5 13.5,1.5 13.5,5"/>
+              </svg>
+              Actualizar
+            </button>
+          </div>
+          <div class="timeline scroll-body" id="resolvedTimeline"></div>
+        </div>
+
+        <!-- Distribución de incidencias por agente (hoy) -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="1" y="9" width="3" height="6"/><rect x="6" y="5" width="3" height="10"/>
+                <rect x="11" y="1" width="3" height="14"/>
+              </svg>
+              Resueltas por agente hoy
+            </div>
+          </div>
+          <div id="agentBarsSection"></div>
+        </div>
+
+        <!-- Cola sin asignar -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="8" cy="8" r="6.5"/><path d="M8 5v3l2 2"/>
+              </svg>
+              Cola sin asignar
+            </div>
+            <span class="section-badge amber" id="queueBadge">2 pendientes</span>
+          </div>
+          <div id="unassignedQueue"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── TAB: RESUELTAS ────────────────────────────────── -->
+    <div class="tab-view" id="tab-resolved">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polyline points="1.5,8 5.5,12 14.5,3"/>
+            </svg>
+            Incidencias resueltas hoy — <span id="resolvedDateLabel"></span>
+          </div>
+          <span class="section-badge green" id="resolvedTotalBadge">12 resueltas</span>
+        </div>
+        <div class="scroll-body" style="max-height: calc(100vh - 230px)">
+          <table class="data-table" id="resolvedTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Asunto</th>
+                <th>Canal</th>
+                <th>Resuelto por</th>
+                <th>Hora</th>
+                <th>Duración</th>
+              </tr>
+            </thead>
+            <tbody id="resolvedTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TAB: TÉCNICOS ─────────────────────────────────── -->
+    <div class="tab-view" id="tab-technicians">
+      <div class="section-card" style="margin-bottom:16px">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="6" cy="5" r="3"/><path d="M1 14c0-2.76 2.24-5 5-5h.5"/>
+              <circle cx="12" cy="11" r="3.5"/><path d="M12 9v2l1 1"/>
+            </svg>
+            Técnicos asignados al sistema
+          </div>
+          <span class="section-badge blue">6 técnicos</span>
+        </div>
+        <div class="tec-grid" id="tecGrid"></div>
+      </div>
+    </div>
+
+    <!-- ─── TAB: AGENTES ──────────────────────────────────── -->
+    <div class="tab-view" id="tab-agents">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="5" r="3"/><path d="M1 14c0-2.76 3.13-5 7-5s7 2.24 7 5"/>
+            </svg>
+            Estado de agentes
+          </div>
+        </div>
+        <div class="scroll-body" style="max-height: calc(100vh - 220px)">
+          <table class="data-table" id="agentsTable">
+            <thead>
+              <tr>
+                <th>Agente</th>
+                <th>Estado</th>
+                <th>Conv. activas</th>
+                <th>Usuarios asignados</th>
+                <th>Técnico asignado</th>
+                <th>Resueltas hoy</th>
+                <th>Libre desde</th>
+              </tr>
+            </thead>
+            <tbody id="agentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  DEMO DATA
+// ══════════════════════════════════════════════════════════════
+
+const AGENTS = [
+  { id: 'a1', name: 'Laura Martínez', av: 'LM', avClass: 'av-blue',   status: 'free',   active: 0, resolved: 4, freeSince: '10:32', techId: 't1', channels: ['whatsapp','web'],  users: ['Juan Pérez','Ana Ruiz'] },
+  { id: 'a2', name: 'Carlos Díaz',    av: 'CD', avClass: 'av-green',  status: 'busy',   active: 2, resolved: 3, freeSince: null,    techId: 't2', channels: ['teams'],          users: ['Mario López','Paco Gil','Sara Vega'] },
+  { id: 'a3', name: 'Marta Gómez',   av: 'MG', avClass: 'av-purple', status: 'busy',   active: 1, resolved: 2, freeSince: null,    techId: 't1', channels: ['whatsapp'],       users: ['Lucía Ruiz'] },
+  { id: 'a4', name: 'Pep Ferrer',    av: 'PF', avClass: 'av-teal',   status: 'free',   active: 0, resolved: 1, freeSince: '11:45', techId: 't3', channels: ['web','email'],    users: ['Elena Costa'] },
+  { id: 'a5', name: 'Noa Sastre',    av: 'NS', avClass: 'av-magenta',status: 'busy',   active: 3, resolved: 2, freeSince: null,    techId: 't2', channels: ['whatsapp','teams'],users: ['Rubén Mora','Irene Alba','David Cano'] },
+  { id: 'a6', name: 'Tomás Vera',    av: 'TV', avClass: 'av-amber',  status: 'offline',active: 0, resolved: 0, freeSince: null,    techId: 't3', channels: ['email'],          users: [] },
+  { id: 'a7', name: 'Bea Llorente',  av: 'BL', avClass: 'av-blue',   status: 'busy',   active: 1, resolved: 0, freeSince: null,    techId: 't4', channels: ['web'],            users: ['Carla Muñoz'] },
+  { id: 'a8', name: 'Marc Riera',    av: 'MR', avClass: 'av-green',  status: 'free',   active: 0, resolved: 0, freeSince: '12:01', techId: 't4', channels: ['teams','web'],    users: [] },
+];
+
+const TECHNICIANS = [
+  { id: 't1', name: 'Aiora Etxebarria', av: 'AE', avClass: 'av-blue',   role: 'Técnico N2',    online: true,  agents: ['a1','a3'], resolvedToday: 8  },
+  { id: 't2', name: 'Mikel Arbelaitz',  av: 'MA', avClass: 'av-green',  role: 'Técnico N1',    online: true,  agents: ['a2','a5'], resolvedToday: 5  },
+  { id: 't3', name: 'Eneko Urrutia',    av: 'EU', avClass: 'av-amber',  role: 'Técnico N2',    online: false, agents: ['a4','a6'], resolvedToday: 3  },
+  { id: 't4', name: 'Leire Gaztañaga', av: 'LG', avClass: 'av-purple', role: 'Técnico N1',    online: true,  agents: ['a7','a8'], resolvedToday: 6  },
+  { id: 't5', name: 'Ane Zubieta',      av: 'AZ', avClass: 'av-teal',   role: 'Técnico N3',    online: true,  agents: [],         resolvedToday: 2  },
+  { id: 't6', name: 'Jon Larrañaga',    av: 'JL', avClass: 'av-magenta',role: 'Coordinador',   online: false, agents: [],         resolvedToday: 0  },
+];
+
+const RESOLVED_TODAY = [
+  { id: '#5421', user: 'Juan Pérez',   topic: 'Error 403 al iniciar sesión',      channel: 'whatsapp', agent: 'Laura Martínez', time: '08:12', duration: '3m 40s' },
+  { id: '#5422', user: 'Ana Ruiz',     topic: 'Doble cobro en factura',           channel: 'teams',    agent: 'Carlos Díaz',    time: '08:47', duration: '6m 10s' },
+  { id: '#5423', user: 'Mario López',  topic: 'API Teams 502 Bad Gateway',        channel: 'teams',    agent: 'Carlos Díaz',    time: '09:03', duration: '11m 22s'},
+  { id: '#5424', user: 'Paco Gil',     topic: 'Cuenta bloqueada sin motivo',      channel: 'whatsapp', agent: 'Marta Gómez',    time: '09:31', duration: '4m 05s' },
+  { id: '#5425', user: 'Sara Vega',    topic: 'Devolución sin respuesta',         channel: 'web',      agent: 'Laura Martínez', time: '09:58', duration: '2m 55s' },
+  { id: '#5426', user: 'Lucía Ruiz',   topic: 'Acceso VPN denegado',              channel: 'email',    agent: 'Pep Ferrer',     time: '10:14', duration: '7m 30s' },
+  { id: '#5427', user: 'Rubén Mora',   topic: 'Error al subir documento PDF',     channel: 'web',      agent: 'Marta Gómez',    time: '10:33', duration: '3m 15s' },
+  { id: '#5428', user: 'Irene Alba',   topic: 'Contraseña no llega al email',     channel: 'whatsapp', agent: 'Noa Sastre',     time: '10:51', duration: '5m 00s' },
+  { id: '#5429', user: 'David Cano',   topic: 'Integración Salesforce caída',     channel: 'teams',    agent: 'Carlos Díaz',    time: '11:07', duration: '9m 48s' },
+  { id: '#5430', user: 'Elena Costa',  topic: 'Permisos denegados en SharePoint', channel: 'web',      agent: 'Noa Sastre',     time: '11:28', duration: '4m 22s' },
+  { id: '#5431', user: 'Carla Muñoz',  topic: 'Módulo de informes en blanco',     channel: 'web',      agent: 'Laura Martínez', time: '11:52', duration: '6m 10s' },
+  { id: '#5432', user: 'Paco Gil',     topic: 'SSO roto tras actualización',      channel: 'teams',    agent: 'Pep Ferrer',     time: '12:05', duration: '8m 44s' },
+];
+
+const UNASSIGNED = [
+  { id: '#5433', user: 'Bruno Herrero', topic: 'No puedo acceder al portal de cliente', channel: 'whatsapp', wait: '7 min' },
+  { id: '#5434', user: 'Silvia Pont',   topic: 'Error exportando a Excel',              channel: 'web',       wait: '12 min' },
+];
+
+// ══════════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════════
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function chBadge(ch) {
+  const map = { whatsapp: ['ch-wa','WA'], teams: ['ch-teams','Teams'], web: ['ch-web','Web'], email: ['ch-email','Email'] };
+  const [cls, lbl] = map[ch] || ['',''];
+  return `<span class="ch-badge ${cls}">${lbl}</span>`;
+}
+
+function agentName(id) { const a = AGENTS.find(a => a.id === id); return a ? a.name : id; }
+function techName(id)  { const t = TECHNICIANS.find(t => t.id === id); return t ? t.name : id; }
+
+// ══════════════════════════════════════════════════════════════
+//  CLOCK
+// ══════════════════════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('es-ES');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ══════════════════════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════════════════════
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FREE AGENTS
+// ══════════════════════════════════════════════════════════════
+function renderFreeAgents() {
+  const free = AGENTS.filter(a => a.status === 'free');
+  document.getElementById('freeCount').textContent = `${free.length} disponibles`;
+  document.getElementById('kpiFree').textContent = free.length;
+
+  const el = document.getElementById('freeAgentsList');
+  if (!free.length) { el.innerHTML = '<div class="empty-hint">No hay agentes libres en este momento</div>'; return; }
+  el.innerHTML = free.map(a => `
+    <div class="free-agent-row">
+      <div class="av ${a.avClass}">${a.av}</div>
+      <div class="free-info">
+        <div class="free-name">${escHtml(a.name)}</div>
+        <div class="free-since">Libre desde las ${a.freeSince} · Técnico: ${escHtml(techName(a.techId))}</div>
+      </div>
+      <div class="free-channels">${a.channels.map(ch => chBadge(ch)).join('')}</div>
+      <span class="badge free"><span class="badge-dot"></span>Libre</span>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RESOLVED TIMELINE (overview)
+// ══════════════════════════════════════════════════════════════
+function renderTimeline() {
+  const items = [...RESOLVED_TODAY].reverse().slice(0, 8);
+  document.getElementById('resolvedTimeline').innerHTML = items.map(r => `
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-body">
+        <div class="tl-title">${escHtml(r.user)} — ${escHtml(r.topic)}</div>
+        <div class="tl-meta">
+          <span>${escHtml(r.agent)}</span>
+          <span class="tl-sep"></span>
+          ${chBadge(r.channel)}
+          <span class="tl-sep"></span>
+          <span>${r.duration}</span>
+        </div>
+      </div>
+      <div class="tl-time">${r.time}</div>
+    </div>`).join('');
+}
+
+function refreshTimeline() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  setTimeout(() => { btn.classList.remove('spinning'); renderTimeline(); }, 800);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AGENT BARS
+// ══════════════════════════════════════════════════════════════
+function renderAgentBars() {
+  const max = Math.max(...AGENTS.map(a => a.resolved), 1);
+  const online = AGENTS.filter(a => a.status !== 'offline');
+  document.getElementById('agentBarsSection').innerHTML = `
+    <div style="padding: 12px 16px; display:flex; flex-direction:column; gap:8px;">
+      ${online.map(a => `
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="av ${a.avClass}" style="width:24px;height:24px;font-size:9px;flex-shrink:0">${a.av}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:500;margin-bottom:3px;">${escHtml(a.name)}</div>
+            <div class="prog-bar">
+              <div class="prog-fill" style="width:${Math.round(a.resolved/max*100)}%; background: var(--electric)"></div>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--electric);min-width:20px;text-align:right">${a.resolved}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UNASSIGNED QUEUE
+// ══════════════════════════════════════════════════════════════
+function renderQueue() {
+  document.getElementById('queueBadge').textContent = `${UNASSIGNED.length} pendientes`;
+  document.getElementById('kpiQueue').textContent = UNASSIGNED.length;
+  const el = document.getElementById('unassignedQueue');
+  if (!UNASSIGNED.length) { el.innerHTML = '<div class="empty-hint">✓ Sin conversaciones en cola</div>'; return; }
+  el.innerHTML = `<table class="data-table"><thead><tr><th>ID</th><th>Usuario</th><th>Asunto</th><th>Canal</th><th>Espera</th><th>Asignar</th></tr></thead><tbody>
+    ${UNASSIGNED.map(u => `
+      <tr>
+        <td><span style="font-family:var(--mono);font-size:11px;color:var(--text-3)">${u.id}</span></td>
+        <td>${escHtml(u.user)}</td>
+        <td style="max-width:200px;">${escHtml(u.topic)}</td>
+        <td>${chBadge(u.channel)}</td>
+        <td><span class="badge critical"><span class="badge-dot"></span>${u.wait}</span></td>
+        <td><button class="assign-btn">Asignar →</button></td>
+      </tr>`).join('')}
+  </tbody></table>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RESOLVED TABLE
+// ══════════════════════════════════════════════════════════════
+function renderResolvedTable() {
+  const today = new Date().toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('resolvedDateLabel').textContent = today;
+  document.getElementById('resolvedTotalBadge').textContent = `${RESOLVED_TODAY.length} resueltas`;
+  document.getElementById('resolvedTabCount').textContent = RESOLVED_TODAY.length;
+  document.getElementById('kpiResolved').textContent = RESOLVED_TODAY.length;
+
+  document.getElementById('resolvedTableBody').innerHTML = [...RESOLVED_TODAY].reverse().map(r => `
+    <tr>
+      <td><span style="font-family:var(--mono);font-size:11px;color:var(--text-3)">${r.id}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:7px;">
+          <div class="av av-blue" style="width:24px;height:24px;font-size:9px;">${r.user.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+          ${escHtml(r.user)}
+        </div>
+      </td>
+      <td style="max-width:240px;color:var(--text-2)">${escHtml(r.topic)}</td>
+      <td>${chBadge(r.channel)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="av av-green" style="width:22px;height:22px;font-size:9px;">${r.agent.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+          ${escHtml(r.agent)}
+        </div>
+      </td>
+      <td style="font-family:var(--mono);font-size:11px;">${r.time}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${r.duration}</td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TECHNICIANS
+// ══════════════════════════════════════════════════════════════
+function renderTechnicians() {
+  document.getElementById('tecGrid').innerHTML = TECHNICIANS.map(t => {
+    const assignedAgents = AGENTS.filter(a => t.agents.includes(a.id));
+    const allUsers = assignedAgents.flatMap(a => a.users.map(u => ({ user: u, agent: a })));
+    return `
+      <div class="tec-card">
+        <div class="tec-card-header">
+          <div class="av ${t.avClass}">${t.av}</div>
+          <div style="flex:1;min-width:0">
+            <div class="tec-name">${escHtml(t.name)}</div>
+            <div class="tec-role">${escHtml(t.role)}</div>
+          </div>
+          <div class="tec-meta">
+            <span class="online-indicator ${t.online ? 'online' : 'offline'}"></span>
+            <span class="tec-stat">${t.online ? 'Online' : 'Offline'}</span>
+          </div>
+        </div>
+        <div class="tec-card-body">
+          <div style="display:flex;gap:16px;margin-bottom:10px;">
+            <div style="text-align:center">
+              <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--electric)">${assignedAgents.length}</div>
+              <div style="font-size:10px;color:var(--text-3)">Agentes</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal)">${allUsers.length}</div>
+              <div style="font-size:10px;color:var(--text-3)">Usuarios</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--green)">${t.resolvedToday}</div>
+              <div style="font-size:10px;color:var(--text-3)">Resueltas</div>
+            </div>
+          </div>
+          ${assignedAgents.length ? `
+          <div class="tec-users-label">Agentes asignados</div>
+          ${assignedAgents.map(a => `
+            <div class="tec-user-row">
+              <div class="av ${a.avClass}" style="width:22px;height:22px;font-size:9px;">${a.av}</div>
+              <div class="tec-user-name">${escHtml(a.name)}</div>
+              <span class="badge ${a.status}" style="font-size:9px;padding:1px 6px;">
+                <span class="badge-dot"></span>
+                ${a.status === 'free' ? 'Libre' : a.status === 'busy' ? 'Ocupado' : 'Offline'}
+              </span>
+              <div class="tec-user-last">${a.users.length} usuarios</div>
+            </div>`).join('')}
+          ` : '<div style="font-size:11px;color:var(--text-3);padding:4px 0">Sin agentes asignados</div>'}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AGENTS TABLE
+// ══════════════════════════════════════════════════════════════
+function renderAgentsTable() {
+  document.getElementById('kpiBusy').textContent = AGENTS.filter(a => a.status === 'busy').length;
+  document.getElementById('agentsTableBody').innerHTML = AGENTS.map(a => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="av ${a.avClass}">${a.av}</div>
+          <div>
+            <div style="font-weight:600">${escHtml(a.name)}</div>
+            <div style="font-size:10px;color:var(--text-3)">${a.channels.map(c => chBadge(c)).join(' ')}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <span class="badge ${a.status}">
+          <span class="badge-dot"></span>
+          ${a.status === 'free' ? 'Libre' : a.status === 'busy' ? 'Ocupado' : 'Offline'}
+        </span>
+      </td>
+      <td style="font-family:var(--mono);font-weight:600;color:${a.active > 0 ? 'var(--amber)' : 'var(--text-3)'}">${a.active}</td>
+      <td>
+        ${a.users.length
+          ? a.users.map(u => `<span style="display:inline-block;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:10px;margin:1px;">${escHtml(u)}</span>`).join('')
+          : '<span style="color:var(--text-3);font-size:11px">—</span>'}
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:5px;">
+          ${(() => { const t = TECHNICIANS.find(t=>t.id===a.techId); return t ? `<div class="av ${t.avClass}" style="width:20px;height:20px;font-size:9px;">${t.av}</div><span style="font-size:11px">${escHtml(t.name)}</span>` : '—'; })()}
+        </div>
+      </td>
+      <td style="font-family:var(--mono);font-weight:700;color:var(--teal)">${a.resolved}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-3)">${a.freeSince || '—'}</td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+renderFreeAgents();
+renderTimeline();
+renderAgentBars();
+renderQueue();
+renderResolvedTable();
+renderTechnicians();
+renderAgentsTable();
+</script>
+</body>
+</html>
