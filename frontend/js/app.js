@@ -430,14 +430,18 @@ function initDropdowns() {
   ];
 
   dropdowns.forEach(({ wrap, btn }) => {
-    const wrapEl = $(wrap);
-    const btnEl  = $(btn);
-    btnEl.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isOpen = wrapEl.classList.contains('open');
-      closeAllDropdowns();
-      if (!isOpen) wrapEl.classList.add('open');
-    });
+    const wrapEl = document.getElementById(wrap);
+    const btnEl  = document.getElementById(btn);
+    
+    // ✨ COMPROBACIÓN AÑADIDA: Solo añadimos el evento si el botón existe
+    if (btnEl && wrapEl) {
+      btnEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = wrapEl.classList.contains('open');
+        closeAllDropdowns();
+        if (!isOpen) wrapEl.classList.add('open');
+      });
+    }
   });
 
   // Close on outside click

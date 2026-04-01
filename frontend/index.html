@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="./css/app.css">
   <style>
     /* ── KB column transition ── */
     .kb-column {
@@ -330,6 +330,21 @@
       flex-wrap: wrap !important;
     }
     .msg-input:focus { border-color: rgba(0,0,208,0.35) !important; }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--ayesa-pink); /* Usa el color rosa corporativo que ya tienes */
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      border: 2px solid rgba(255,255,255,0.2);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
   </style>
 </head>
 <body>
@@ -338,15 +353,18 @@
 
   <!-- ═══ HEADER ════════════════════════════════════════════ -->
   <header class="header d-flex align-items-center justify-content-between">
-    <div class="header-brand d-flex align-items-center gap-2">
-      <div class="brand-icon d-flex align-items-center justify-content-center flex-shrink-0">
-        <svg viewBox="0 0 16 16" fill="white" width="16" height="16">
-          <path d="M8 1C4.13 1 1 3.91 1 7.5c0 1.67.63 3.2 1.68 4.37L1.5 15l3.3-1.06A7.1 7.1 0 0 0 8 14c3.87 0 7-2.91 7-6.5S11.87 1 8 1z"/>
+
+    <!-- Izquierda: logo -->
+    <div class="d-flex align-items-center gap-3">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </div>
-      <span>Unified Response Command</span>
+      <div class="header-brand">Unified Response Hub</div>
     </div>
 
+    <!-- Centro: estadísticas -->
     <div class="header-stats d-flex align-items-center gap-3 flex-shrink-0">
       <div class="stat-item d-flex align-items-center gap-1">
         <span class="stat-dot green"></span>
@@ -368,8 +386,11 @@
         <span class="ws-dot"></span>
         <span class="azure-status-label">Estado de la conexión</span>
       </div>
+    </div>
 
-      <!-- Botón configuración sonido -->
+    <!-- Derecha: botones + usuario -->
+    <div class="d-flex align-items-center gap-2">
+
       <button class="hdr-btn" id="soundSettingsBtn" title="Configuración de alertas y sonido">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" id="soundBtnIcon">
           <path d="M8 2.5 4.5 6H2a.5.5 0 0 0-.5.5v3A.5.5 0 0 0 2 10h2.5L8 13.5V2.5z"/>
@@ -378,7 +399,6 @@
         <span>Alertas</span>
       </button>
 
-      <!-- Botón Zona Privada -->
       <button class="hdr-btn" id="privateZoneBtn" title="Zona privada · mis usuarios asignados">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
           <rect x="3" y="7" width="10" height="8" rx="1.5"/>
@@ -387,7 +407,6 @@
         <span>Mi zona</span>
       </button>
 
-      <!-- Botón buscador -->
       <button class="hdr-btn" id="searchToggleBtn" title="Buscar · Alt+S">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="6.5" cy="6.5" r="5"/><path d="m10.5 10.5 3.5 3.5"/>
@@ -395,7 +414,7 @@
         <span>Buscar</span>
       </button>
 
-      <!-- Botón asistente KB -->
+      <!-- UN SOLO botón Asistente, con su icono -->
       <button class="hdr-btn" id="kbToggleBtn" title="Asistente técnico · Alt+K">
         <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="8" cy="8" r="6.5"/>
@@ -404,7 +423,15 @@
         </svg>
         <span>Asistente</span>
       </button>
+
+      <!-- Usuario logueado -->
+      <div class="user-profile ms-2 d-flex align-items-center gap-2" style="border-left: 1px solid rgba(255,255,255,0.15); padding-left: 12px;">
+        <div class="user-avatar" id="userAvatar">--</div>
+        <div id="userNameDisplay" style="font-size: 13px; font-weight: 500; color: #fff;">Cargando...</div>
+      </div>
+
     </div>
+
   </header>
 
   <!-- ═══ MAIN ══════════════════════════════════════════════ -->
@@ -442,7 +469,8 @@
 
     <!-- ─── CHAT AREA ─────────────────────────────────────── -->
     <section class="chat-area" id="chatArea">
-      <!-- Empty state -->
+
+      <!-- Estado vacío: se muestra hasta que se abre un chat -->
       <div class="empty-state" id="emptyState">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="44" height="44" opacity="0.2">
           <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
@@ -450,17 +478,13 @@
         <div class="empty-title">Selecciona una conversación</div>
         <div class="empty-sub">Elige una conversación de la cola para empezar</div>
       </div>
-      <!-- Multi-chat panels container -->
+
+      <!-- Contenedor de paneles multi-chat (se muestra al abrir una conv) -->
       <div class="chat-panels" id="chatPanels" style="display:none"></div>
-      <!-- Hidden compat elements for JS -->
-      <div style="display:none">
-        <input id="botTestInput"><button id="botTestBtn"></button>
-        <div id="botTestResult"></div>
-        <div id="botTestWrap"><button id="botTestDropBtn"></button></div>
-        <div id="quickRepliesPanel"><input id="dpQRSearch"><div id="dpQRList"></div></div>
-        <div id="notesPanel"></div>
-        <span id="notesCount"></span>
-        <div id="chatTabsBar"><div id="chatTabsList"></div></div>
+
+      <!-- Stubs ocultos: app.js los busca por ID para bindear eventos.
+           Sin ellos app.js peta en bindEvents() y el script inline no arranca. -->
+      <div style="display:none" aria-hidden="true">
         <div id="chatView"></div>
         <div id="messagesArea"></div>
         <div id="chatAvatar"></div>
@@ -470,16 +494,29 @@
         <span id="derivedBadge"><span id="derivedAgentName"></span></span>
         <textarea id="msgInput"></textarea>
         <button id="sendBtn"></button>
-        <button id="transferBtn"></button>
         <button id="resolveBtn"></button>
         <button id="notesBtn"></button>
-        <div id="clientInfoPanel"></div>
-        <span id="dpName"></span><span id="dpChannel"></span>
-        <span id="dpStatus"></span><span id="dpStart"></span>
-        <span id="dpAgent"></span><div id="dpTags"></div>
+        <button id="transferBtn"></button>
+        <div id="transferModal">
+          <input id="transferTarget">
+          <button id="cancelTransfer"></button>
+          <button id="confirmTransfer"></button>
+        </div>
+        <input id="botTestInput"><button id="botTestBtn"></button>
+        <div id="botTestResult"></div>
+        <div id="botTestWrap"><button id="botTestDropBtn"></button></div>
+        <div id="quickRepliesPanel"><input id="dpQRSearch"><div id="dpQRList"></div></div>
+        <div id="notesPanel"></div>
+        <span id="notesCount"></span>
+        <div id="chatTabsBar"><div id="chatTabsList"></div></div>
+        <div id="clientInfoPanel">
+          <span id="dpName"></span><span id="dpChannel"></span>
+          <span id="dpStatus"></span><span id="dpStart"></span>
+          <span id="dpAgent"></span><div id="dpTags"></div>
+        </div>
       </div>
-    </section>
 
+    </section>
     <div class="resize-handle" id="resizeRight"></div>
 
     <!-- ─── ASISTENTE COLUMN ──────────────────────────────────── -->
@@ -869,8 +906,18 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="app.js"></script>
+<script src="js/app.js"></script>
 <script>
+  (function() {
+  try {
+    const u = JSON.parse(localStorage.getItem('loggedUser'));
+    if (u) {
+      const initials = (u.name || 'AG').split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+      document.getElementById('userAvatar').textContent = initials;
+      document.getElementById('userNameDisplay').textContent = u.name || u.email || 'Agente';
+    }
+  } catch(e) {}
+})();
 // ── Demo / UI interactions for new features ─────────────────
 
 const AGENTS = [

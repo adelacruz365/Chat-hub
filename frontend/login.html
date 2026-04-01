@@ -333,80 +333,124 @@
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-  // ── Demo users (replace with real MSAL / backend auth) ──────────
-  const DEMO_USERS = [
-    { email: 'admin@empresa.com',     pass: 'admin123',  role: 'admin',  name: 'Admin Demo' },
-    { email: 'supervisor@empresa.com', pass: 'super123', role: 'admin',  name: 'Supervisor Demo' },
-    { email: 'agente@empresa.com',    pass: 'agente123', role: 'agent',  name: 'Agente Demo' },
+<!-- MSAL.js — Microsoft Authentication Library -->
+<script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+
+<script>
+  // ════════════════════════════════════════════════════════════════
+  // CONFIGURACIÓN — Rellena con tus valores de Azure
+  // ════════════════════════════════════════════════════════════════
+  const MSAL_CONFIG = {
+    clientId: '9180f7de-289b-40a3-975b-414ddc8d14a6',
+    tenantId: '6f167842-765d-4bda-a56e-9d433bc27739',   // o 'common' para cualquier cuenta MS
+  };
+
+  const ADMIN_EMAILS = [
+    'admin@tuempresa.com',
+    'supervisor@tuempresa.com',
   ];
 
-  function showLoading(text = 'Autenticando...') {
-    document.getElementById('loadingText').textContent = text;
+  const DEMO_USERS = [
+    { email: 'admin@empresa.com',      pass: 'admin123',  role: 'admin',  name: 'Admin Demo' },
+    { email: 'supervisor@empresa.com', pass: 'super123',  role: 'admin',  name: 'Supervisor Demo' },
+    { email: 'agente@empresa.com',     pass: 'agente123', role: 'agent',  name: 'Agente Demo' },
+  ];
+
+  // ════════════════════════════════════════════════════════════════
+  // Variable global — se asigna en DOMContentLoaded
+  // ════════════════════════════════════════════════════════════════
+  let msalInstance = null;
+
+  // ════════════════════════════════════════════════════════════════
+  // Funciones auxiliares — globales para que onclick las encuentre
+  // ════════════════════════════════════════════════════════════════
+  function showLoading(text) {
+    document.getElementById('loadingText').textContent = text || 'Autenticando...';
     document.getElementById('loadingOverlay').classList.add('show');
   }
-
   function hideLoading() {
     document.getElementById('loadingOverlay').classList.remove('show');
   }
-
   function redirectByRole(role) {
-    if (role === 'admin') {
-      window.location.href = 'admin.html';
-    } else {
-      window.location.href = 'index.html';
+    window.location.href = role === 'admin' ? 'admin.html' : 'index.html';
+  }
+  function getRoleFromEmail(email) {
+    return ADMIN_EMAILS.includes(email.toLowerCase()) ? 'admin' : 'agent';
+  }
+  function buildFullName(account, graphProfile) {
+    if (graphProfile) {
+      const given   = graphProfile.givenName  || '';
+      const surname = graphProfile.surname     || '';
+      if (given || surname) return (given + ' ' + surname).trim();
+      if (graphProfile.displayName) return graphProfile.displayName;
+    }
+    return account.name || account.username;
+  }
+  async function fetchGraphProfile(accessToken) {
+    try {
+      const res = await fetch('https://graph.microsoft.com/v1.0/me?$select=givenName,surname,displayName,mail', {
+        headers: { Authorization: 'Bearer ' + accessToken }
+      });
+      if (!res.ok) throw new Error('Graph error');
+      return await res.json();
+    } catch (e) {
+      console.warn('No se pudo obtener perfil de Graph:', e);
+      return null;
     }
   }
-
-  // ── Microsoft SSO ────────────────────────────────────────────────
-  // In production: integrate MSAL.js (Microsoft Authentication Library)
-  // https://learn.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-javascript-auth-code
-  //
-  // Example MSAL setup:
-  //   const msalConfig = { auth: { clientId: 'YOUR_CLIENT_ID', authority: 'https://login.microsoftonline.com/YOUR_TENANT_ID' }};
-  //   const msalInstance = new msal.PublicClientApplication(msalConfig);
-  //   msalInstance.loginPopup({ scopes: ['User.Read'] }).then(response => { ... });
-  //
-  // The token response includes: response.account.username, response.account.name
-  // Map the user's AAD group membership to role → admin or agent
-
-  function loginWithMicrosoft() {
-    showLoading('Conectando con Microsoft...');
-    // DEMO: simulate Microsoft OAuth flow
-    setTimeout(() => {
+  async function handleMsalResponse(response) {
+    if (!response) return;
+    showLoading('Obteniendo perfil...');
+    try {
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        scopes: ['User.Read'],
+        account: response.account,
+      });
+      const graphProfile = await fetchGraphProfile(tokenResponse.accessToken);
+      const fullName     = buildFullName(response.account, graphProfile);
+      const email        = response.account.username;
+      const role         = getRoleFromEmail(email);
+      localStorage.setItem('loggedUser', JSON.stringify({ email, name: fullName, role, provider: 'microsoft' }));
+      showLoading('Accediendo...');
+      setTimeout(() => redirectByRole(role), 600);
+    } catch (err) {
+      console.error('Error al procesar login de Microsoft:', err);
       hideLoading();
-      // In real implementation, get role from AAD groups / app roles
-      // Demo: prompt for demo role selection
-      simulateMSLogin();
-    }, 1800);
-  }
-
-  function simulateMSLogin() {
-    // Demo modal to pick role (replace with real MSAL token claims)
-    const role = prompt(
-      'DEMO: Simular login Microsoft\n\nEscribe el rol del usuario:\n  admin  → Panel supervisor\n  agent  → Hub de conversaciones',
-      'agent'
-    );
-    const validRoles = ['admin', 'agent'];
-    if (role && validRoles.includes(role.trim().toLowerCase())) {
-      showLoading('Verificando permisos...');
-      setTimeout(() => redirectByRole(role.trim().toLowerCase()), 800);
-    } else if (role !== null) {
-      alert('Rol no reconocido. Usa "admin" o "agent".');
+      alert('Error al obtener tu perfil de Microsoft. Intentalo de nuevo.');
     }
   }
 
-  // ── Manual login ─────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════
+  // Botón Microsoft — global para onclick del HTML
+  // ════════════════════════════════════════════════════════════════
+  async function loginWithMicrosoft() {
+    if (!msalInstance) {
+      alert('MSAL aun no esta listo. Espera un momento e intentalo de nuevo.');
+      return;
+    }
+    showLoading('Redirigiendo a Microsoft...');
+    const req = { scopes: ['User.Read', 'openid', 'profile', 'email'] };
+    try {
+      await msalInstance.loginRedirect(req);
+    } catch (err) {
+      console.error('MSAL login error:', err);
+      hideLoading();
+      alert('Error al iniciar sesion con Microsoft. Intentalo de nuevo.');
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Login manual — global para onclick del HTML
+  // ════════════════════════════════════════════════════════════════
   function loginManual() {
     const email = document.getElementById('emailInput').value.trim().toLowerCase();
     const pass  = document.getElementById('passInput').value;
     const errEl = document.getElementById('errorMsg');
-
     errEl.classList.remove('show');
-
     const user = DEMO_USERS.find(u => u.email === email && u.pass === pass);
     if (user) {
-      showLoading('Iniciando sesión...');
+      localStorage.setItem('loggedUser', JSON.stringify(user));
+      showLoading('Iniciando sesion...');
       setTimeout(() => redirectByRole(user.role), 900);
     } else {
       errEl.classList.add('show');
@@ -415,8 +459,35 @@
     }
   }
 
-  // Enter key support
-  document.getElementById('passInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') loginManual();
+  // ════════════════════════════════════════════════════════════════
+  // Inicialización — esperar DOM y MSAL listos
+  // ════════════════════════════════════════════════════════════════
+  document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('passInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') loginManual();
+    });
+    document.getElementById('emailInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('passInput').focus();
+    });
+
+    try {
+      msalInstance = new msal.PublicClientApplication({
+        auth: {
+          clientId:    MSAL_CONFIG.clientId,
+          authority:   'https://login.microsoftonline.com/' + MSAL_CONFIG.tenantId,
+          redirectUri: window.location.origin + window.location.pathname,
+        },
+        cache: { cacheLocation: 'sessionStorage' }
+      });
+
+      const redirectResponse = await msalInstance.handleRedirectPromise();
+      if (redirectResponse) {
+        await handleMsalResponse(redirectResponse);
+      }
+    } catch (err) {
+      console.error('Error inicializando MSAL:', err);
+    }
   });
-  document.getElementById('emailIn
+</script>
+</body>
+</html>
