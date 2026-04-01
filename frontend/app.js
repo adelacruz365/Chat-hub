@@ -12,9 +12,9 @@
  */
 
 // ─── Config ───────────────────────────────────────────────────
-const API_BASE  = '';
-const WS_URL    = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
-const AGENT_ID  = 'agent-' + Math.random().toString(36).slice(2, 8);
+const API_BASE = '';            // misma origen cuando sirve Node
+// const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
+const WS_URL = "wss://pubsub-hub-tecnicos-poc.webpubsub.azure.com/client/hubs/Centro?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ3c3M6Ly9wdWJzdWItaHViLXRlY25pY29zLXBvYy53ZWJwdWJzdWIuYXp1cmUuY29tL2NsaWVudC9odWJzL0NlbnRybyIsImlhdCI6MTc3NDg1Mjc0NCwiZXhwIjoxNzc0ODg4NzQ0fQ.FIzGDUqWEK95PsqrVeAAPeIDgLCv8Et12czpnIRzCOM";const AGENT_ID = 'agent-' + Math.random().toString(36).slice(2, 8);
 const AGENT_NAME = 'Agente Hub';
 
 const QUICK_REPLIES = [
@@ -62,7 +62,7 @@ window.addEventListener('DOMContentLoaded', () => {
   renderDropdownQR();
   initToastContainer();
   initResizeHandles();
-  initDropdowns();
+  //initDropdowns();
   initKbPanel();
   initSearchPanel();
   setInterval(loadStats, 10000);
@@ -139,27 +139,127 @@ async function testBot(text) {
 
 // ─── WebSocket ────────────────────────────────────────────────
 function connectWebSocket() {
-  ws = new WebSocket(WS_URL);
+  // 1. AÑADIMOS EL SUBPROTOCOLO DE AZURE COMO SEGUNDO PARÁMETRO
+  ws = new WebSocket(WS_URL, 'json.webpubsub.azure.v1');
+
   ws.onopen = () => {
+    console.log('[WS] Conectado a Azure Web PubSub');
     setWsStatus('connected');
     clearTimeout(wsReconnectTimer);
-    ws.send(JSON.stringify({ type: 'agent.join', agentId: AGENT_ID, agentName: AGENT_NAME }));
+    
+    // 2. ENVIAMOS EL COMANDO OFICIAL PARA UNIRNOS AL GRUPO
+    ws.send(JSON.stringify({
+        type: "joinGroup",
+        group: "Facturacion"
+    }));
+    
+    console.log('Suscrito al grupo: Facturacion');
   };
-  ws.onmessage = (event) => {
-    let data;
-    try { data = JSON.parse(event.data); } catch { return; }
-    handleWsEvent(data);
+
+ws.onmessage = (event) => {
+    console.log("🔥 MENSAJE RECIBIDO DESDE AZURE:", event.data);
+
+    try {
+        let msgObj = JSON.parse(event.data);
+        
+        // 1. Ignoramos la basura del sistema para no ensuciar
+        if (msgObj.type === 'system') return;
+
+// ================================================================
+        // 🚨 MODO FUERZA BRUTA: INYECTAR EN EL NUEVO DISEÑO HTML
+        // ================================================================
+        if (event.data.includes('conversation.new')) {
+            let payloadReal = typeof msgObj.data === 'string' ? JSON.parse(msgObj.data) : (msgObj.data || msgObj);
+            let nuevaConv = payloadReal.conversation;
+
+            // Limpiamos la basura de Copilot
+            if (nuevaConv.id) nuevaConv.id = nuevaConv.id.replace(/["\\]/g, '');
+            if (nuevaConv.userId) nuevaConv.userId = nuevaConv.userId.replace(/["\\]/g, '');
+            if (nuevaConv.userName) nuevaConv.userName = nuevaConv.userName.replace(/["\\]/g, '');
+
+            // 🚀 LA MAGIA: Lo metemos directamente en tu nuevo diseño multipanel
+            if (typeof DEMO_CONVS !== 'undefined') {
+                
+                // 1. Lo metemos en la lista de chats del HTML
+                const existeDemo = DEMO_CONVS.find(c => c.id === nuevaConv.id);
+                if (!existeDemo) {
+                    DEMO_CONVS.unshift({
+                        id: nuevaConv.id,
+                        name: nuevaConv.userName,
+                        av: nuevaConv.userName.substring(0, 2).toUpperCase() || 'U',
+                        avClass: 'av-teams',
+                        channel: nuevaConv.channel || 'teams',
+                        status: 'active',
+                        topic: nuevaConv.topic || 'Escalado desde Copilot',
+                        derived: null
+                    });
+                }
+                
+                // 2. Metemos sus mensajes en la base de datos del HTML
+                if (typeof DEMO_MESSAGES !== 'undefined') {
+                    DEMO_MESSAGES[nuevaConv.id] = nuevaConv.messages.map(m => ({
+                        role: m.role || 'user',
+                        text: m.text || ''
+                    }));
+                }
+
+                // 3. Forzamos que se redibuje la barra lateral (usando la función del HTML)
+                if (typeof renderConvList === 'function') renderConvList();
+
+                // 4. ABRIMOS EL PANEL CENTRAL NUEVO
+                if (typeof openChatPanel === 'function') {
+                    openChatPanel(nuevaConv.id);
+                }
+                
+            } else {
+                // Fallback a lo antiguo por si acaso
+                openConv(nuevaConv.id);
+            }
+            
+            showToast(`🚨 Chat abierto en nuevo panel: ${nuevaConv.userName}`, 'new-msg');
+            console.log("✅ CHAT FORZADO Y ABIERTO CON ÉXITO EN EL NUEVO DISEÑO");
+            return;
+        }
+        // ================================================================
+
+        // Para el resto de mensajes normales (cuando hablas dentro del chat)
+        if (msgObj.type === 'message' && msgObj.data) {
+            let payloadNormal = typeof msgObj.data === 'string' ? JSON.parse(msgObj.data) : msgObj.data;
+            handleWsEvent(payloadNormal);
+        }
+
+    } catch (error) {
+        console.error("❌ Error en la fuerza bruta:", error);
+    }
   };
-  ws.onclose = () => {
+
+  ws.onclose = (event) => {
+    console.log('[WS] Desconectado de Azure — reconectando en 3s', event.code, event.reason);
     setWsStatus('error');
     wsReconnectTimer = setTimeout(connectWebSocket, 3000);
   };
-  ws.onerror = () => setWsStatus('error');
+
+  ws.onerror = (error) => {
+    console.error('[WS] Error de conexión:', error);
+    setWsStatus('error');
+  };
 }
 
 function handleWsEvent(data) {
   switch (data.type) {
-
+    case 'conversation.new': {
+      // 1. Verificamos que no exista ya por si acaso
+      const existe = conversations.find(c => c.id === data.conversation.id);
+      if (!existe) {
+        // 2. Metemos la nueva conversación al principio de la lista
+        conversations.unshift(data.conversation);
+        // 3. Volvemos a dibujar el panel izquierdo
+        renderConvList();
+        // 4. Avisamos al agente
+        showToast(`🔔 Nuevo chat entrante de ${data.conversation.userName}`, 'info');
+      }
+      break;
+    }
     case 'message.new': {
       const conv = conversations.find(c => c.id === data.conversationId);
       let isDuplicate = false;

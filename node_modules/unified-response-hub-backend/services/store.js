@@ -211,7 +211,10 @@ function getStats() {
 }
 
 seedDemoData();
-
+function createConversation(data) {
+  conversations.set(data.id, data);
+  return data;
+}
 module.exports = {
   getAllConversations, getConversation, createConversation,
   addMessage, updateConversationStatus, deleteConversation,
